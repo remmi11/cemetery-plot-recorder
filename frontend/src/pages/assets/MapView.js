@@ -332,13 +332,13 @@ class MapView extends Component {
       assetDetail: false,
       selectedAsset: null,
 
-      center: [-101.8568, 35.1944]
+      center: [-100.01742174976827, 36.127929876964515]
     }
 
     this.tileUrl = config.DEV_IPS[config.env] + '/api/get-tile/{z}/{x}/{y}.mvt?'
     this.filter = {};
     this.drawControl = null;
-    this.zoom = [7];
+    this.zoom = [16];
     this.loaded = false;
 
     this.layerRef = React.createRef();
