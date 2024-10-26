@@ -1,0 +1,7 @@
+/frontend/node_modules
+/myapp/.venv
+/frontend/build
+/frontend/package-lock.json
+/myapp/myapp/__pycache__/*.pyc
+/myapp/main_app/migrations/__pycache__/*.pyc
+/myapp/main_app/__pycache__/*.pyc
