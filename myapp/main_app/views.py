@@ -113,75 +113,12 @@ class AssetGeoJson(APIView):
 
 	def get(self, request, format=None):
 		condition_a = Q()
-		if request.GET.get('global') and request.GET.get('global') != "":
-			global_key = request.GET.get('global')
-			temp = (Q(collection__icontains = global_key) |
-				Q(project_no__icontains = global_key) |
-				Q(client__icontains = global_key) |
-				Q(map_no__icontains = global_key) |
-				Q(contact_name__icontains = global_key) |
-				Q(situs_street__icontains = global_key) |
-				Q(situs_city__icontains = global_key) |
-				Q(situs_state__icontains = global_key) |
-				Q(county__icontains = global_key) |
-				Q(rural_survey__icontains = global_key) |
-				Q(rural_block__icontains = global_key) |
-				Q(rural_section__icontains = global_key) |
-				Q(sub_name__icontains = global_key) |
-				Q(sub_unit__icontains = global_key) |
-				Q(sub_block__icontains = global_key) |
-				Q(sub_lot__icontains = global_key) |
-				Q(plss_meridian__icontains = global_key) |
-				Q(plss_t_r__icontains = global_key) |
-				Q(plss_section__icontains = global_key) |
-				Q(notes__icontains = global_key) |
-				Q(requested_by__icontains = global_key) |
-				Q(certify_to__icontains = global_key) |
-				Q(gf_no__icontains = global_key) |
-				Q(lender__icontains = global_key) |
-				Q(certified_by__icontains = global_key) |
-				Q(pid__icontains = global_key) |
-				Q(aka__icontains = global_key) |
-				Q(plat_no__icontains = global_key))
-
-			condition_a = condition_a & temp
-
-		condition_a = condition_a & (Q(collection__icontains=request.GET.get('collection'))) if request.GET.get('collection') else condition_a
-		condition_a = condition_a & (Q(project_no__icontains=request.GET.get('project_no'))) if request.GET.get('project_no') else condition_a
-		condition_a = condition_a & (Q(client__icontains=request.GET.get('client'))) if request.GET.get('client') else condition_a
-		condition_a = condition_a & (Q(certified_by__icontains=request.GET.get('certified_by'))) if request.GET.get('certified_by') else condition_a
-		condition_a = condition_a & (Q(certify_to__icontains=request.GET.get('certify_to'))) if request.GET.get('certify_to') else condition_a
-		condition_a = condition_a & (Q(contact_name__icontains=request.GET.get('contact_name'))) if request.GET.get('contact_name') else condition_a
-		condition_a = condition_a & (Q(map_no__icontains=request.GET.get('map_no'))) if request.GET.get('map_no') else condition_a
-		condition_a = condition_a & (Q(contact_address__icontains=irequest.GET.get('contact_address'))) if request.GET.get('contact_address') else condition_a
-		condition_a = condition_a & (Q(aka__icontains=request.GET.get('aka'))) if request.GET.get('aka') else condition_a
-		condition_a = condition_a & (Q(well_name__icontains=request.GET.get('well_name'))) if request.GET.get('well_name') else condition_a
-		condition_a = condition_a & (Q(well_number__icontains=request.GET.get('well_number'))) if request.GET.get('well_number') else condition_a
-
-		condition_a = condition_a & (Q(join_type__icontains=request.GET.get('join_type'))) if request.GET.get('join_type') else condition_a
-		condition_a = condition_a & (Q(county__icontains=request.GET.get('county'))) if request.GET.get('county') else condition_a
-		condition_a = condition_a & (Q(rural_survey__icontains=request.GET.get('rural_survey'))) if request.GET.get('rural_survey') else condition_a
-		condition_a = condition_a & (Q(rural_block__icontains=request.GET.get('rural_block'))) if request.GET.get('rural_block') else condition_a
-		condition_a = condition_a & (Q(rural_section__icontains=request.GET.get('rural_section'))) if request.GET.get('rural_section') else condition_a
-		condition_a = condition_a & (Q(plss_meridian__icontains=request.GET.get('plss_meridian'))) if request.GET.get('plss_meridian') else condition_a
-		condition_a = condition_a & (Q(plss_t_r__icontains=request.GET.get('plss_t_r'))) if request.GET.get('plss_t_r') else condition_a
-		condition_a = condition_a & (Q(plss_section__icontains=request.GET.get('plss_section'))) if request.GET.get('plss_section') else condition_a
-		condition_a = condition_a & (Q(sub_name__istartswith=request.GET.get('sub_name'))) if request.GET.get('sub_name') else condition_a
-		condition_a = condition_a & (Q(sub_unit__icontains=request.GET.get('sub_unit'))) if request.GET.get('sub_unit') else condition_a
-		condition_a = condition_a & (Q(sub_block__icontains=request.GET.get('sub_block'))) if request.GET.get('sub_block') else condition_a
-		condition_a = condition_a & (Q(sub_lot__icontains=request.GET.get('sub_lot'))) if request.GET.get('sub_lot') else condition_a
-		condition_a = condition_a & (Q(situs_street__icontains=request.GET.get('situs_street'))) if request.GET.get('situs_street') else condition_a
-		condition_a = condition_a & (Q(notes__icontains=request.GET.get('notes'))) if request.GET.get('notes') else condition_a
-		condition_a = condition_a & (Q(aka__icontains=request.GET.get('aka'))) if request.GET.get('aka') else condition_a
-		condition_a = condition_a & (Q(plat_no__icontains=request.GET.get('plat_no'))) if request.GET.get('plat_no') else condition_a
-
+		
 		page = int(request.GET.get('page', 1))
 		st_index = (page - 1) * 50
 		ed_index = page * 50
 
-		condition_a = condition_a & (Q(age=int(request.GET.get('age')))) if request.GET.get('age') else condition_a
-
-		isFilter = False
+		isFilter = True
 		if condition_a:
 			isFilter = True
 
@@ -195,20 +132,26 @@ class AssetGeoJson(APIView):
 		else:
 			assets = CemeteryPlot.objects.filter(condition_a).order_by('-id')[st_index: ed_index]
 
-		data = serialize('geojson', assets,
-			geometry_field='geom')
-		total = CemeteryPlot.objects.filter(condition_a).count()
+		assets = MasterGeom.objects.all()
+
+		data = serialize('geojson', assets, geometry_field='geom')
+		total = assets.count()
 		data = json.loads(data)
+
+		print("==========", total, condition_a, isFilter)
 
 		bbox = None
 		with connection.cursor() as cursor:
-			if condition_a and isFilter:
-				search_field = CemeteryPlot.objects.filter(condition_a).query
-				search_field = str(search_field).split("WHERE")[1].strip()
-				search_field = search_field.replace("LIKE UPPER(", "LIKE UPPER('").replace("(%", "('%").replace("%)", "%')")
+			print("inside cursor...")
+			# if condition_a and isFilter:
+			if isFilter:
+				search_field = assets.query
+				# search_field = str(search_field).split("WHERE")[1].strip()
+				# search_field = search_field.replace("LIKE UPPER(", "LIKE UPPER('").replace("(%", "('%").replace("%)", "%')")
 
 				print (search_field)
-				sql = "SELECT min(ST_XMin(geom)) as l, min(ST_YMin(geom)) as b, max(ST_XMax(geom)) as r, max(ST_YMax(geom)) as t from form where %s" % search_field
+				# sql = "SELECT min(ST_XMin(geom)) as l, min(ST_YMin(geom)) as b, max(ST_XMax(geom)) as r, max(ST_YMax(geom)) as t from master_geom where %s" % search_field
+				sql = "SELECT min(ST_XMin(geom)) as l, min(ST_YMin(geom)) as b, max(ST_XMax(geom)) as r, max(ST_YMax(geom)) as t from master_geom"
 
 				cursor.execute(sql)
 				res = cursor.fetchone()
@@ -220,20 +163,6 @@ class AssetGeoJson(APIView):
 					bbox = list(res)
 				print (bbox)
 
-		# condition = Q()
-		# condition = condition & (Q(address__icontains=global_filter)) if global_filter else condition
-
-		# page = int(request.GET.get('page', 1))
-		# page_size = int(request.GET.get('page_size', 10))
-		# st_index = (page - 1) * page_size
-		# ed_index = page * page_size
-
-		# if request.GET.get('direction'):
-		# 	column = request.GET.get('column') if request.GET.get('direction') == 'asc' else '-' + request.GET.get('column')
-		# 	assets = Tickets.objects.filter(condition).order_by(column)[st_index: ed_index]
-		# else:
-		# 	assets = Tickets.objects.filter(condition)[st_index: ed_index]
-
 		return Response({'geojson': data, 'total': total, 'bbox': bbox})
 
 class getVectorTile(APIView):
@@ -241,78 +170,16 @@ class getVectorTile(APIView):
 	def get(self, request, zoom, x, y):
 		condition_a = ~Q(geom=None)
 
-		if request.GET.get('global') and request.GET.get('global') != "":
-			global_key = request.GET.get('global')
-			# temp = (Q(collection__icontains = global_key) |
-			# 	Q(project_no__icontains = global_key) |
-			# 	Q(client__icontains = global_key) |
-			# 	Q(map_no__icontains = global_key) |
-			# 	Q(contact_name__icontains = global_key) |
-			# 	Q(situs_street__icontains = global_key) |
-			# 	Q(situs_city__icontains = global_key) |
-			# 	Q(situs_state__icontains = global_key) |
-			# 	Q(county__icontains = global_key) |
-			# 	Q(rural_survey__icontains = global_key) |
-			# 	Q(rural_block__icontains = global_key) |
-			# 	Q(rural_section__icontains = global_key) |
-			# 	Q(sub_name__icontains = global_key) |
-			# 	Q(sub_unit__icontains = global_key) |
-			# 	Q(sub_block__icontains = global_key) |
-			# 	Q(sub_lot__icontains = global_key) |
-			# 	Q(plss_meridian__icontains = global_key) |
-			# 	Q(plss_t_r__icontains = global_key) |
-			# 	Q(plss_section__icontains = global_key) |
-			# 	Q(notes__icontains = global_key) |
-			# 	Q(requested_by__icontains = global_key) |
-			# 	Q(certify_to__icontains = global_key) |
-			# 	Q(gf_no__icontains = global_key) |
-			# 	Q(lender__icontains = global_key) |
-			# 	Q(certified_by__icontains = global_key) |
-			# 	Q(pid__icontains = global_key) |
-			# 	Q(aka__icontains = global_key) |
-			# 	Q(plat_no__icontains = global_key))
-
-			# condition_a = condition_a & temp
-
-		# condition_a = condition_a & (Q(collection__icontains=request.GET.get('collection'))) if request.GET.get('collection') else condition_a
-		# condition_a = condition_a & (Q(project_no__icontains=request.GET.get('project_no'))) if request.GET.get('project_no') else condition_a
-		# condition_a = condition_a & (Q(client__icontains=request.GET.get('client'))) if request.GET.get('client') else condition_a
-		# condition_a = condition_a & (Q(certified_by__icontains=request.GET.get('certified_by'))) if request.GET.get('certified_by') else condition_a
-		# condition_a = condition_a & (Q(certify_to__icontains=request.GET.get('certify_to'))) if request.GET.get('certify_to') else condition_a
-		# condition_a = condition_a & (Q(contact_name__icontains=request.GET.get('contact_name'))) if request.GET.get('contact_name') else condition_a
-		# condition_a = condition_a & (Q(map_no__icontains=request.GET.get('map_no'))) if request.GET.get('map_no') else condition_a
-		# condition_a = condition_a & (Q(contact_address__icontains=request.GET.get('contact_address'))) if request.GET.get('contact_address') else condition_a
-		# condition_a = condition_a & (Q(aka__icontains=request.GET.get('aka'))) if request.GET.get('aka') else condition_a
-		# condition_a = condition_a & (Q(well_name__icontains=request.GET.get('well_name'))) if request.GET.get('well_name') else condition_a
-		# condition_a = condition_a & (Q(well_number__icontains=request.GET.get('well_number'))) if request.GET.get('well_number') else condition_a
-
-		# condition_a = condition_a & (Q(join_type__icontains=request.GET.get('join_type'))) if request.GET.get('join_type') else condition_a
-		# condition_a = condition_a & (Q(county__icontains=request.GET.get('county'))) if request.GET.get('county') else condition_a
-		# condition_a = condition_a & (Q(rural_survey__icontains=request.GET.get('rural_survey'))) if request.GET.get('rural_survey') else condition_a
-		# condition_a = condition_a & (Q(rural_block__icontains=request.GET.get('rural_block'))) if request.GET.get('rural_block') else condition_a
-		# condition_a = condition_a & (Q(rural_section__icontains=request.GET.get('rural_section'))) if request.GET.get('rural_section') else condition_a
-		# condition_a = condition_a & (Q(plss_meridian__icontains=request.GET.get('plss_meridian'))) if request.GET.get('plss_meridian') else condition_a
-		# condition_a = condition_a & (Q(plss_t_r__icontains=request.GET.get('plss_t_r'))) if request.GET.get('plss_t_r') else condition_a
-		# condition_a = condition_a & (Q(plss_section__icontains=request.GET.get('plss_section'))) if request.GET.get('plss_section') else condition_a
-		# condition_a = condition_a & (Q(sub_name__icontains=request.GET.get('sub_name'))) if request.GET.get('sub_name') else condition_a
-		# condition_a = condition_a & (Q(sub_unit__icontains=request.GET.get('sub_unit'))) if request.GET.get('sub_unit') else condition_a
-		# condition_a = condition_a & (Q(sub_block__icontains=request.GET.get('sub_block'))) if request.GET.get('sub_block') else condition_a
-		# condition_a = condition_a & (Q(sub_lot__icontains=request.GET.get('sub_lot'))) if request.GET.get('sub_lot') else condition_a
-		# condition_a = condition_a & (Q(situs_street__icontains=request.GET.get('situs_street'))) if request.GET.get('situs_street') else condition_a
-		# condition_a = condition_a & (Q(notes__icontains=request.GET.get('notes'))) if request.GET.get('notes') else condition_a
-		# condition_a = condition_a & (Q(aka__icontains=request.GET.get('aka'))) if request.GET.get('aka') else condition_a
-		# condition_a = condition_a & (Q(plat_no__icontains=request.GET.get('plat_no'))) if request.GET.get('plat_no') else condition_a
-
 		with connection.cursor() as cursor:
 			if condition_a:
-				search_field = CemeteryPlot.objects.filter(condition_a).query
+				search_field = MasterGeom.objects.filter(condition_a).query
 				search_field = str(search_field).split("WHERE")[1].strip()
 				search_field = search_field.replace("LIKE UPPER(", "LIKE UPPER('").replace("(%", "('%").replace("%)", "%')")
 
-				sql = "SELECT ST_AsMVT(tile) FROM (SELECT id, first, middle, last, ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)) from plot_form where %s and ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)) is not null) AS tile" % (zoom, x, y, search_field, zoom, x, y)
+				sql = "SELECT ST_AsMVT(tile) FROM (SELECT id, ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)) from master_geom where %s and ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)) is not null) AS tile" % (zoom, x, y, search_field, zoom, x, y)
 				print (sql)
 			else:
-				sql = "SELECT ST_AsMVT(tile) FROM (SELECT id, first, middle, last, ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)) from plot_form where ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)) is not null) AS tile" % (zoom, x, y, zoom, x, y)
+				sql = "SELECT ST_AsMVT(tile) FROM (SELECT id, ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)) from master_geom where ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)) is not null) AS tile" % (zoom, x, y, zoom, x, y)
 
 			cursor.execute(sql)
 			tile = bytes(cursor.fetchone()[0])
@@ -326,57 +193,12 @@ class getAssta(APIView):
 	def get(self, request):
 		condition_a = ~Q(geom=None)
 
-		# filter assets by global and each columns
-		if request.GET.get('global') and request.GET.get('global') != "":
-			global_key = request.GET.get('global')
-			temp = (Q(collection__icontains = global_key) |
-				Q(project_no__icontains = global_key) |
-				Q(client__icontains = global_key) |
-				Q(map_no__icontains = global_key) |
-				Q(contact_name__icontains = global_key) |
-				Q(situs_street__icontains = global_key) |
-				Q(situs_city__icontains = global_key) |
-				Q(situs_state__icontains = global_key) |
-				Q(county__icontains = global_key) |
-				Q(rural_survey__icontains = global_key) |
-				Q(rural_block__icontains = global_key) |
-				Q(rural_section__icontains = global_key) |
-				Q(sub_name__icontains = global_key) |
-				Q(sub_unit__icontains = global_key) |
-				Q(sub_block__icontains = global_key) |
-				Q(sub_lot__icontains = global_key) |
-				Q(plss_meridian__icontains = global_key) |
-				Q(plss_t_r__icontains = global_key) |
-				Q(plss_section__icontains = global_key) |
-				Q(notes__icontains = global_key) |
-				Q(requested_by__icontains = global_key) |
-				Q(certify_to__icontains = global_key) |
-				Q(gf_no__icontains = global_key) |
-				Q(lender__icontains = global_key) |
-				Q(certified_by__icontains = global_key) |
-				Q(pid__icontains = global_key) |
-				Q(aka__icontains = global_key) |
-                                Q(plat_no__icontains = global_key))
-
-			condition_a = condition_a & temp
-
-		condition_a = condition_a & (Q(collection__icontains=request.GET.get('collection'))) if request.GET.get('collection') else condition_a
-		condition_a = condition_a & (Q(project_no__icontains=request.GET.get('project_no'))) if request.GET.get('project_no') else condition_a
-		condition_a = condition_a & (Q(client__icontains=request.GET.get('client'))) if request.GET.get('client') else condition_a
-		condition_a = condition_a & (Q(certified_by__icontains=request.GET.get('certified_by'))) if request.GET.get('certified_by') else condition_a
-		condition_a = condition_a & (Q(certify_to__icontains=request.GET.get('certify_to'))) if request.GET.get('certify_to') else condition_a
-		condition_a = condition_a & (Q(contact_name__icontains=request.GET.get('contact_name'))) if request.GET.get('contact_name') else condition_a
-		condition_a = condition_a & (Q(map_no__icontains=request.GET.get('map_no'))) if request.GET.get('map_no') else condition_a
-		condition_a = condition_a & (Q(contact_address__icontains=request.GET.get('contact_address'))) if request.GET.get('contact_address') else condition_a
-		condition_a = condition_a & (Q(aka__icontains=request.GET.get('aka'))) if request.GET.get('aka') else condition_a
-		condition_a = condition_a & (Q(well_name__icontains=request.GET.get('well_name'))) if request.GET.get('well_name') else condition_a
-		condition_a = condition_a & (Q(well_number__icontains=request.GET.get('well_number'))) if request.GET.get('well_number') else condition_a
-		condition_a = condition_a & (Q(plat_no__icontains=request.GET.get('plat_no'))) if request.GET.get('plat_no') else condition_a
-
 		pnt = Point(float(request.GET.get('lng')), float(request.GET.get('lat')))
 
-		condition_a = condition_a & Q(geom__distance_lte=(pnt, 10))
-		assets = CemeteryPlot.objects.filter(condition_a)
+		condition_a = condition_a & Q(geom__distance_lte=(pnt, 1))
+		assets = MasterGeom.objects.filter(condition_a)
+
+		print("assets found => ", assets.count(), list(assets))
 
 		return HttpResponse(serialize('json', list(assets)), content_type="json")
 

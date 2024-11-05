@@ -198,6 +198,7 @@ class Assets extends Component {
   }
 
   convertPointFormat(geo) {
+    console.log("inside convertPointFormat...")
     return "SRID=4326;POINT (" + geo.join(" ") + ")";
   }
 
@@ -248,7 +249,9 @@ class Assets extends Component {
         assets = res.geojson;
       }
 
-      let temp = {assets: assets, total: res.total, page: page};
+      console.log(assets)
+
+      let temp = {assets: assets, total: res.total, page: page, bbox: res.bbox};
       if (sort) {
         temp.sort_column = sort.column;
         temp.sort_direction = sort.direction;

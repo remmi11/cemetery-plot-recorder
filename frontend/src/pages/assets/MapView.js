@@ -277,7 +277,7 @@ const FilterIcon = styled.div`
   }
 `
 
-const SearchInput = (props) => <input {...props} placeholder="Search Address" />
+const SearchInput = (props) => <input {...props} placeholder="Search Address" value="" />
 
 // The component for asset map view
 class MapView extends Component {
@@ -325,14 +325,14 @@ class MapView extends Component {
         "type": "vector",
         "tiles": [config.DEV_IPS[config.env] + '/api/get-tile/{z}/{x}/{y}.mvt', ],
         'minzoom': 6,
-        'maxzoom': 14
+        'maxzoom': 20
       },
 
       viewport: {},
       assetDetail: false,
       selectedAsset: null,
 
-      center: [-100.01742174976827, 36.127929876964515]
+      center: [-100.0174217, 36.1279298]
     }
 
     this.tileUrl = config.DEV_IPS[config.env] + '/api/get-tile/{z}/{x}/{y}.mvt?'
@@ -395,6 +395,7 @@ class MapView extends Component {
 
   // init function
   componentDidMount() {
+    console.log("component did mount...")
     let {option} = this.state;
     let { filter, globalFilter } = this.props;
 
@@ -437,17 +438,21 @@ class MapView extends Component {
       url += "global=" + globalFilter + "&";
     }
 
-    this.setState({filter, option: {...option, tiles: [this.tileUrl + url]}, center: null, filterIcon: isFilered, filterBubbles})
+    this.setState({filter, option: {...option, tiles: [this.tileUrl + url]}, center: this.state.center, filterIcon: isFilered, filterBubbles})
     this.zoom = null;
 
     storejs.set('assetPrePage', 'map');
     document.addEventListener('mousedown', this.handleClickOutside);
   }
+
   componentDidUpdate(nextProps) {
     let {option} = this.state;
     let {lAssets, createDialog, filter, globalFilter, bbox} = this.props, coordinates = [];
     let isFilered = false;
     let filterBubbles = {};
+
+    console.log("componet did update....", lAssets, bbox, nextProps.lAssets, nextProps.bbox)
+
 
     if (nextProps.filter != filter || nextProps.globalFilter != globalFilter) {
       let url = "";
@@ -474,6 +479,7 @@ class MapView extends Component {
       storejs.set('bounds', bbox)
     }
   }
+
   componentWillUnmount() {
     document.removeEventListener('mousedown', this.handleClickOutside);
   }
@@ -503,6 +509,7 @@ class MapView extends Component {
   showTooltip(e, properties) {
     this.setState({selected: e.lngLat, property: properties})
   }
+
   hideTooltip(e) {
     this.setState({selected: null})
   }
@@ -757,8 +764,9 @@ class MapView extends Component {
     api.call('api/get-asseta/', filter, function(res){
       let lat = e.lngLat.lat, lng = e.lngLat.lng;
       if (res.length > 1) {
+        console.log(res)
         if (res[0].fields.geom) {
-          let geom = res[0].fields.geom.split("(")[1].split(")")[0].split(' ')
+          let geom = res[0].fields.geom.split("((")[1].split("))")[0].split(',')[0].split(' ')
           lat = parseFloat(geom[1]);
           lng = parseFloat(geom[0]);
         }
@@ -773,7 +781,8 @@ class MapView extends Component {
         self.props.onToggle('table')
       } else if (res.length > 0) {
         // window.location.href="/assets/detail/" + res[0].pk;
-        self.setState({selectedAsset: res[0].pk, assetDetail: true});
+        // self.setState({selectedAsset: res[0].pk, assetDetail: true});
+        console.log("Error in asset details API...")
       }
     })
   }
@@ -808,14 +817,14 @@ class MapView extends Component {
     let {assets, bbox, geojson, property, selected, timestamp, bounds, filter, detailInfo, mapLayer, showMapLayer, viewport, filterIcon} = this.state;
     let layers = [], coordinates = [];
 
-    let tp_bounds = null
+    let tp_bounds = null;
     // if (this.loaded == false && geojson != null) {
     //     tp_bounds = this.getBounds(geojson);
     //     this.loaded = true;
     // }
 
     return (
-      <MapViewWrapper container md={12} mb={6}>
+      <MapViewWrapper container mb={6}>
         <Grid item md={8} mb={6} className="label">
         </Grid >
         <Grid item md={4} mb={6} xs={12} className="actions">
@@ -832,20 +841,7 @@ class MapView extends Component {
           {Object.keys(this.state.filterBubbles).map(ft => {
             return <span className="filter-icon"><b>{ft}</b>: {this.state.filterBubbles[ft]} <CloseIcon onClick={()=>this.removeFilter(ft)}/></span>
           })}
-        </Grid>
-        <Grid item md={12} mb={6} xs={12}>
-          <div className="oci-category">
-            <div className="title">Survey Type:</div>
-            <div className="icon-label" title="Residential">
-              <div className="status" style={{background: '#27409a'}}></div> Residential</div>
-            <div className="icon-label" title="Rural">
-              <div className="status" style={{background: '#c70f0f'}}></div> Rural</div>
-            <div className="icon-label" title="PLSS">
-              <div className="status" style={{background: '#d8951c'}}></div> PLSS</div>
-            <div className="icon-label" title="Route">
-              <div className="status" style={{background: 'green'}}></div> Route</div>
-          </div>
-        </Grid>
+        </Grid>        
         <Grid item md={12} mb={6} xs={12}>
           {showMapLayer && <LayerPanel ref={this.layerRef}>
             <FormGroup>
@@ -914,13 +910,6 @@ class MapView extends Component {
             {this.state.floods && <Source id="floodsTileLayer" tileJsonSource={this.floodsTileLayer} />}
             {this.state.floods && <Layer type="raster" id="floodsTileLayer" sourceId="floodsTileLayer" />}
 
-            {this.state.cityLimits && <Source id="cityLimitsTileLayer" tileJsonSource={this.cityLimitsTileLayer} />}
-            {this.state.cityLimits && <Layer type="raster" id="cityLimitsTileLayer" sourceId="cityLimitsTileLayer" />}
-
-            {this.state.parcels && <Source id="parcelsTileLayer" tileJsonSource={this.parcelsTileLayer} />}
-            {this.state.parcels && <Layer type="raster" id="parcelsTileLayer" sourceId="parcelsTileLayer" />}
-            {this.state.sections && <Source id="sectionsTileLayer" tileJsonSource={this.sectionsTileLayer} />}
-            {this.state.sections && <Layer type="raster" id="sectionsTileLayer" sourceId="sectionsTileLayer" />}
             <Source id='mapillarysdata' tileJsonSource={this.state.option} />
             <Layer
               id='mapillarysdata'

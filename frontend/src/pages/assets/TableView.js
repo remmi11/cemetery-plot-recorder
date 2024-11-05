@@ -887,10 +887,10 @@ class AssetATableView extends Component {
     const availableColumns = Object.keys(columnFilters).map(ck => {
       const width = columnFilters[ck].end ? 6 : 4;
 
-      return <Grid item md={width} mb={6}>
+      return <Grid key={ck} item md={width} mb={6}>
         <FormControlLabel 
           control={
-            <Checkbox id={ck} name={ck} checked={columnFilters[ck].checked} onChange={(e) => this.onColumnFilters(e)} />
+            <Checkbox key={ck} id={ck} name={ck} checked={columnFilters[ck].checked} onChange={(e) => this.onColumnFilters(e)} />
           }
           label={columnFilters[ck].label}
         />
@@ -1001,7 +1001,7 @@ class AssetATableView extends Component {
           <DialogTitle id="form-dialog-title">Custom columns</DialogTitle>
           <DialogContent>
             <FormControl component="fieldset">
-              <Grid container md={12}>
+              <Grid container>
                 {availableColumns}
               </Grid>
             </FormControl>
