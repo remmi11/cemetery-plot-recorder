@@ -294,34 +294,11 @@ class AssetDetail extends Component {
       confirmDialog: false,
 
       collections: [],
-      bbox: [[-102.8568, 34.1944], [-100.8568, 36.1944]],
+      bbox: [],
 
       isRoute: false
     }
 
-    this.join_types = {
-      'county': {
-        'plss': 'meridian',
-        'residential': 'subdivision',
-        'rural': 'survey'
-      },
-      'level1': {
-        'plss': 'town_range',
-        'residential': 'unit',
-        'rural': 'block'
-      },
-      'level2': {
-        'plss': 'section',
-        'residential': 'subblock',
-        'rural': 'rural_section'
-      },
-      'level3': {
-        'residential': 'lot'
-      },
-    }
-    this.joinTypeSelection = {}
-    this.meridians = {}
-    
     this.drawControl = null;
     this.center = [-101.8568, 35.1944];
     this.zoom = [11];
@@ -1034,11 +1011,11 @@ class AssetDetail extends Component {
           }, 2000)
         }
 
-        self.getCounty()
-        self.loadLegal('county', asset, res.data[3].trim(), 'init')
-        self.loadLegal('level1', asset, res.data[4].trim(), 'init')
-        self.loadLegal('level2', asset, res.data[5].trim(), 'init')
-        self.loadLegal('level3', asset, res.data[6].trim(), 'init')
+        // self.getCounty()
+        // self.loadLegal('county', asset, res.data[3].trim(), 'init')
+        // self.loadLegal('level1', asset, res.data[4].trim(), 'init')
+        // self.loadLegal('level2', asset, res.data[5].trim(), 'init')
+        // self.loadLegal('level3', asset, res.data[6].trim(), 'init')
       }
     })
 
@@ -1165,82 +1142,41 @@ class AssetDetail extends Component {
                     <Grid item md={6} xs={12}>
                       <FormControl margin="normal" fullWidth>
                         <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>County</div>
-                        <SelectValidator id="county"
-                        validators={['required', ]} errorMessages={['this field is required', ]}
-                        value={asset.county}
-                        name="county" onChange={(e) => this.handleChange(e, 'county')} fullWidth>
-                          <MenuItem value="">- Select -</MenuItem>
-                          {this.state.counties.map(county => {
-                            return <MenuItem value={county}>{county}</MenuItem>
-                          })}
-                        </SelectValidator>
+                        <TextField id="county" name="county" value={asset.county} label="" fullWidth />
                       </FormControl>
                     </Grid>
                     <Grid item md={1} xs={12}></Grid>
                     <Grid item md={5} xs={12}>
                       <FormControl margin="normal" fullWidth>
                         <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Addition</div>
-                        <SelectValidator id="addition"
-                        value={asset.addition}
-                        name="addition" onChange={(e) => this.handleChange(e, 'addition')} fullWidth>
-                          <MenuItem value="">- Select -</MenuItem>
-                          {this.state.level1.map(addition => {
-                            return <MenuItem value={addition}>{addition}</MenuItem>
-                          })}
-                        </SelectValidator>
+                        <TextField id="addition" name="addition" value={asset.addition} label="" fullWidth />
                       </FormControl>
                     </Grid>
                     <Grid item md={6} xs={12}>
                       <FormControl margin="normal" fullWidth>
                         <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Unit</div>
-                        <SelectValidator id="unit"
-                        value={asset.unit}
-                        name="unit" onChange={(e) => this.handleChange(e, 'unit')} fullWidth>
-                          <MenuItem value="">- Select -</MenuItem>
-                          {this.state.level2.map(unit => {
-                            return <MenuItem value={unit}>{unit}</MenuItem>
-                          })}
-                        </SelectValidator>
+                        <TextField id="unit" name="unit" value={asset.unit} label="" fullWidth />
                       </FormControl>
                     </Grid>
                     <Grid item md={1} xs={12}></Grid>
                     <Grid item md={5} xs={12}>
                       <FormControl margin="normal" fullWidth>
                         <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Block</div>
-                        <SelectValidator id="block"
-                        value={asset.block}
-                        name="block" onChange={(e) => this.handleChange(e, 'block')} fullWidth>
-                          <MenuItem value="">- Select -</MenuItem>
-                          {this.state.level3.map(block => {
-                            return <MenuItem value={block}>{block}</MenuItem>
-                          })}
-                        </SelectValidator>
+                        <TextField id="block" name="block" value={asset.block} label="" fullWidth />
                       </FormControl>
                     </Grid>
 
                     <Grid item md={6} xs={12}>
                       <FormControl margin="normal" fullWidth>
                         <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Lot</div>
-                        <SelectValidator id="lot" value={asset.lot}
-                          name="lot" onChange={(e) => this.handleChange(e, 'lot')} fullWidth>
-                          <MenuItem value="">- Select -</MenuItem>
-                          {this.state.level4.map(lot => {
-                            return <MenuItem value={lot}>{lot}</MenuItem>
-                          })}
-                        </SelectValidator>
+                        <TextField id="lot" name="lot" value={asset.lot} label="" fullWidth />
                       </FormControl>
                     </Grid>
                     <Grid item md={1} xs={12}></Grid>
                     <Grid item md={5} xs={12}>
                       <FormControl margin="normal" fullWidth>
                         <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Plot</div>
-                        <SelectValidator id="plot" value={asset.plot}
-                        name="plot" onChange={(e) => this.handleChange(e, 'plot')} fullWidth>
-                          <MenuItem value="">- Select -</MenuItem>
-                          {this.state.level5.map(plot => {
-                            return <MenuItem value={plot}>{plot}</MenuItem>
-                          })}
-                        </SelectValidator>
+                        <TextField id="plot" name="plot" value={asset.plot} label="" fullWidth />
                       </FormControl>
                     </Grid>
                     

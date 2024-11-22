@@ -395,7 +395,7 @@ class MapView extends Component {
 
   // init function
   componentDidMount() {
-    console.log("component did mount...")
+    console.log(">>>>> component did mount...")
     let {option} = this.state;
     let { filter, globalFilter } = this.props;
 
@@ -439,7 +439,7 @@ class MapView extends Component {
     }
 
     this.setState({filter, option: {...option, tiles: [this.tileUrl + url]}, center: this.state.center, filterIcon: isFilered, filterBubbles})
-    this.zoom = null;
+    // this.zoom = null;
 
     storejs.set('assetPrePage', 'map');
     document.addEventListener('mousedown', this.handleClickOutside);
@@ -451,33 +451,35 @@ class MapView extends Component {
     let isFilered = false;
     let filterBubbles = {};
 
-    console.log("componet did update....", lAssets, bbox, nextProps.lAssets, nextProps.bbox)
+    console.log("component did update....", lAssets.features?.length, nextProps.lAssets.features?.length)
 
+    // if (nextProps.filter != filter || nextProps.globalFilter != globalFilter) {
+    //   let url = "";
+    //   Object.keys(filter).map(key => {
+    //     if (key != 'page') {
+    //       url += key + "=" + filter[key] + "&";
+    //     }
+    //     if (!['mapped', 'bound', 'global', 'page', 'bbox', 'lat', 'lng', 'gf'].includes(key) && filter[key] != '') {
+    //       isFilered = true;
+    //       filterBubbles[key] = filter[key]
+    //     }
+    //   })
+    //   if (globalFilter && globalFilter != '') {
+    //     url += "global=" + globalFilter + "&";
+    //   }
+    //   this.setState({filter, option: {...option, tiles: [this.tileUrl + url]}, filterIcon: isFilered, filterBubbles})
+    // }
 
-    if (nextProps.filter != filter || nextProps.globalFilter != globalFilter) {
-      let url = "";
-      Object.keys(filter).map(key => {
-        if (key != 'page') {
-          url += key + "=" + filter[key] + "&";
-        }
-        if (!['mapped', 'bound', 'global', 'page', 'bbox', 'lat', 'lng', 'gf'].includes(key) && filter[key] != '') {
-          isFilered = true;
-          filterBubbles[key] = filter[key]
-        }
-      })
-      if (globalFilter && globalFilter != '') {
-        url += "global=" + globalFilter + "&";
-      }
-      this.setState({filter, option: {...option, tiles: [this.tileUrl + url]}, filterIcon: isFilered, filterBubbles})
-    }
+    // if (nextProps.lAssets != lAssets) {
+    //   this.setState({geojson: lAssets})
+    // }
+    // if (nextProps.bbox != bbox && bbox) {
+    //   this.setState({bbox: bbox})
+    //   storejs.set('bounds', bbox)
+    // }
 
-    if (nextProps.lAssets != lAssets) {
-      this.setState({geojson: lAssets})
-    }
-    if (nextProps.bbox != bbox && bbox) {
-      this.setState({bbox: bbox})
-      storejs.set('bounds', bbox)
-    }
+    console.log("Current zoom level =", this.zoom);
+
   }
 
   componentWillUnmount() {
@@ -492,6 +494,7 @@ class MapView extends Component {
     let center = item.center
     let bbox = [center[0] - 0.001, center[1] - 0.001, center[0] + 0.001, center[1] + 0.001]
     storejs.set('bounds', bbox)
+    console.log("Bound for click ->", bbox)
     this.setState({bbox: bbox})
 
     filter['mapped'] = true
@@ -760,18 +763,20 @@ class MapView extends Component {
 
     filter['lat'] = e.lngLat.lat;
     filter['lng'] = e.lngLat.lng;
+    console.log("Click pos =>", filter)
 
     api.call('api/get-asseta/', filter, function(res){
       let lat = e.lngLat.lat, lng = e.lngLat.lng;
-      if (res.length > 1) {
-        console.log(res)
+      if (res.length > 0) {
+        console.log("map click -> data loaded -> count =", res.length, " |", res)
         if (res[0].fields.geom) {
           let geom = res[0].fields.geom.split("((")[1].split("))")[0].split(',')[0].split(' ')
           lat = parseFloat(geom[1]);
           lng = parseFloat(geom[0]);
         }
-        console.log([lat, lng])
-        let bbox = [lng - 0.00001, lat - 0.00001, lng + 0.00001, lat + 0.00001]
+        console.log("lat, lng ->", lat, lng);
+        let bbox = [lng - 0.00003, lat - 0.000015, lng + 0.00003, lat + 0.000015];
+        console.log('bound after click =>', bbox);
         storejs.set('bounds', bbox)
         self.setState({bbox: bbox})
 
@@ -779,7 +784,7 @@ class MapView extends Component {
         self.props.getDataFromServer(filter, globalFilter, 1, null, null, false)
         self.props.onMapped(true)
         self.props.onToggle('table')
-      } else if (res.length > 0) {
+      } else {
         // window.location.href="/assets/detail/" + res[0].pk;
         // self.setState({selectedAsset: res[0].pk, assetDetail: true});
         console.log("Error in asset details API...")
@@ -795,8 +800,10 @@ class MapView extends Component {
 
   onZoom(map, event) {
     let {filter, globalFilter} = this.props;
-    let bounds = map.getBounds()
-    bounds = [bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat]
+    let bounds = map.getBounds();
+    bounds = [bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat];
+    console.log("zoom event...", bounds)
+
     storejs.set('bounds', bounds)
 
     filter['mapped'] = true

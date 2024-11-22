@@ -124,15 +124,10 @@ class AssetGeoJson(APIView):
 
 		if request.GET.get('bound') and request.GET.get('gf') == None:
 			poly = Polygon.from_bbox(tuple(request.GET.get('bound').split(',')))
-			condition_a = condition_a & Q(geom__contained=poly) if request.GET.get('mapped', 'true') == 'true' else condition_a & ~Q(geom__contained=poly)
+			condition_a = Q(geom__contained=poly) if request.GET.get('mapped', 'true') == 'true' else ~Q(geom__contained=poly)
 
-		if request.GET.get('direction'):
-			column = request.GET.get('column') if request.GET.get('direction') == 'asc' else '-' + request.GET.get('column')
-			assets = CemeteryPlot.objects.filter(condition_a).order_by(column)[st_index: ed_index]
-		else:
-			assets = CemeteryPlot.objects.filter(condition_a).order_by('-id')[st_index: ed_index]
-
-		assets = MasterGeom.objects.all()
+		assets_all = MasterGeom.objects.filter(condition_a)
+		assets = assets_all.order_by('-id')[st_index: ed_index]
 
 		data = serialize('geojson', assets, geometry_field='geom')
 		total = assets.count()
@@ -145,13 +140,13 @@ class AssetGeoJson(APIView):
 			print("inside cursor...")
 			# if condition_a and isFilter:
 			if isFilter:
-				search_field = assets.query
-				# search_field = str(search_field).split("WHERE")[1].strip()
-				# search_field = search_field.replace("LIKE UPPER(", "LIKE UPPER('").replace("(%", "('%").replace("%)", "%')")
+				search_field = assets_all.query
+				search_field = str(search_field).split("WHERE")[1].strip()
+				search_field = search_field.replace("LIKE UPPER(", "LIKE UPPER('").replace("(%", "('%").replace("%)", "%')")
 
 				print (search_field)
-				# sql = "SELECT min(ST_XMin(geom)) as l, min(ST_YMin(geom)) as b, max(ST_XMax(geom)) as r, max(ST_YMax(geom)) as t from master_geom where %s" % search_field
-				sql = "SELECT min(ST_XMin(geom)) as l, min(ST_YMin(geom)) as b, max(ST_XMax(geom)) as r, max(ST_YMax(geom)) as t from master_geom"
+				sql = "SELECT min(ST_XMin(geom)) as l, min(ST_YMin(geom)) as b, max(ST_XMax(geom)) as r, max(ST_YMax(geom)) as t from master_geom where %s" % search_field
+				# sql = "SELECT min(ST_XMin(geom)) as l, min(ST_YMin(geom)) as b, max(ST_XMax(geom)) as r, max(ST_YMax(geom)) as t from master_geom"
 
 				cursor.execute(sql)
 				res = cursor.fetchone()
@@ -195,10 +190,10 @@ class getAssta(APIView):
 
 		pnt = Point(float(request.GET.get('lng')), float(request.GET.get('lat')))
 
-		condition_a = condition_a & Q(geom__distance_lte=(pnt, 1))
+		condition_a = condition_a & Q(geom__distance_lte=(pnt, 0.25))
 		assets = MasterGeom.objects.filter(condition_a)
 
-		print("assets found => ", assets.count(), list(assets))
+		print("assets found =>", assets.count(), list(assets), serialize('json', list(assets)))
 
 		return HttpResponse(serialize('json', list(assets)), content_type="json")
 
@@ -309,14 +304,29 @@ class CemeteryPlotDetail(APIView):
 
 	def get_object(self, pk):
 		try:
-			return CemeteryPlot.objects.filter(pk=pk)[0]
+			print("inside get_object...")
+			return MasterGeom.objects.get(pk=pk)
 		except:
 			raise Http404
 
 	def get(self, request, pk, format=None):
 		try:
-			asset = CemeteryPlot.objects.filter(Q(pk=pk))[0]
-			serializer = CemeteryPlotSerializer(asset)
+			print("inside get...")
+			asset = self.get_object(pk)
+			cemetery_plot = CemeteryPlot.objects.filter(ogc_fid=asset.ogc_fid).first()
+			if not cemetery_plot:
+				cemetery_plot = CemeteryPlot()
+				cemetery_plot.ogc_fid = asset.ogc_fid
+				cemetery_plot.county = asset.county
+				cemetery_plot.addition = asset.addition
+				cemetery_plot.unit = asset.unit
+				cemetery_plot.block = asset.block
+				cemetery_plot.lot = asset.lot
+				cemetery_plot.plot = cemetery_plot.plot
+				cemetery_plot.geom = asset.geom
+				cemetery_plot.save()
+
+			serializer = CemeteryPlotSerializer(cemetery_plot)
 			return Response(serializer.data)
 		except:
 			raise Http404

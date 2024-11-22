@@ -626,6 +626,7 @@ class AssetATableView extends Component {
   // The event function to go to the asset detail page, when selecting row in the asset table.
   onRowClick(e) {
     // window.location.href = '/assets/detail/' + e.pk;
+    console.log("Row clicked...", e, e.pk);
     this.setState({assetDetail: true, selectedAsset: e.pk});
   }
 

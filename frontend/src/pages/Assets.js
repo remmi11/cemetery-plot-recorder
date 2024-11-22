@@ -221,9 +221,9 @@ class Assets extends Component {
       tfitler['direction'] = sort.direction;
     }
 
-    // if (storejs.get('bounds', null)) {
-    //   tfitler['bound'] = storejs.get('bounds', null).join(',')
-    // }
+    if (storejs.get('bounds', null)) {
+      tfitler['bound'] = storejs.get('bounds', null).join(',')
+    }    
     if (filter['mapped'] == undefined) {
       tfitler['mapped'] = this.state.mapped
     }
@@ -249,7 +249,7 @@ class Assets extends Component {
         assets = res.geojson;
       }
 
-      console.log(assets)
+      console.log('got geojson response....', assets)
 
       let temp = {assets: assets, total: res.total, page: page, bbox: res.bbox};
       if (sort) {
