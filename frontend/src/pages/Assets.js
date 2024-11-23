@@ -249,7 +249,7 @@ class Assets extends Component {
         assets = res.geojson;
       }
 
-      console.log('got geojson response....', assets)
+      console.log('got geojson response....', assets, res.bbox)
 
       let temp = {assets: assets, total: res.total, page: page, bbox: res.bbox};
       if (sort) {

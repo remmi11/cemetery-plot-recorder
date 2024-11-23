@@ -286,7 +286,7 @@ class MapView extends Component {
 
     let user = storejs.get('user');
 
-    let bound = null
+    let bound = null;
     if (storejs.get('bounds', null)) {
       bound = storejs.get('bounds')
       bound = [[bound[0], bound[1]], [bound[2], bound[3]]]
@@ -332,7 +332,8 @@ class MapView extends Component {
       assetDetail: false,
       selectedAsset: null,
 
-      center: [-100.0174217, 36.1279298]
+      center: [-100.0174217, 36.1279298],
+      isFirstLoad: true,
     }
 
     this.tileUrl = config.DEV_IPS[config.env] + '/api/get-tile/{z}/{x}/{y}.mvt?'
@@ -450,8 +451,9 @@ class MapView extends Component {
     let {lAssets, createDialog, filter, globalFilter, bbox} = this.props, coordinates = [];
     let isFilered = false;
     let filterBubbles = {};
+    let {isFirstLoad} = this.state;
 
-    console.log("component did update....", lAssets.features?.length, nextProps.lAssets.features?.length)
+    console.log("component did update....", isFirstLoad, lAssets.features?.length, nextProps.lAssets.features?.length)
 
     // if (nextProps.filter != filter || nextProps.globalFilter != globalFilter) {
     //   let url = "";
@@ -473,12 +475,11 @@ class MapView extends Component {
     // if (nextProps.lAssets != lAssets) {
     //   this.setState({geojson: lAssets})
     // }
-    // if (nextProps.bbox != bbox && bbox) {
-    //   this.setState({bbox: bbox})
-    //   storejs.set('bounds', bbox)
-    // }
 
-    console.log("Current zoom level =", this.zoom);
+    if (isFirstLoad && nextProps.bbox != bbox && bbox) {
+      storejs.set('bounds', bbox)
+      this.setState({bbox: bbox, isFirstLoad: false})
+    }
 
   }
 
@@ -780,7 +781,8 @@ class MapView extends Component {
         storejs.set('bounds', bbox)
         self.setState({bbox: bbox})
 
-        filter['mapped'] = true
+        filter['mapped'] = true;
+        self.props.setAssets([]);
         self.props.getDataFromServer(filter, globalFilter, 1, null, null, false)
         self.props.onMapped(true)
         self.props.onToggle('table')
