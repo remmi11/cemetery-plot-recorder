@@ -19,9 +19,9 @@ urlpatterns = [
     path('get-tile/<int:zoom>/<int:x>/<int:y>.mvt', views.getVectorTile.as_view()),
     path('token/', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
-    path('get-asseta/', views.getAssta.as_view()),
+    path('get-asseta/', views.getAsset.as_view()),
     path('asset/<int:pk>/', views.CemeteryPlotDetail.as_view(), name='plot_detail'),
-    path('asset_create/', views.CemeteryPlotCreate.as_view(), name='plot_create'),
+    # path('asset_create/', views.CemeteryPlotCreate.as_view(), name='plot_create'),
 
     # path('ticket/<int:pk>/', views.TicketDetail.as_view()),
     # path('ticket_create/', views.TicketCreate.as_view()),

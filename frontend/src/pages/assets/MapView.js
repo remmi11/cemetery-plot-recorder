@@ -325,7 +325,7 @@ class MapView extends Component {
         "type": "vector",
         "tiles": [config.DEV_IPS[config.env] + '/api/get-tile/{z}/{x}/{y}.mvt', ],
         'minzoom': 6,
-        'maxzoom': 20
+        'maxzoom': 22,
       },
 
       viewport: {},

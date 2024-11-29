@@ -19,7 +19,7 @@ const Page404 = async(() => import("../pages/auth/Page404"));
 const Page500 = async(() => import("../pages/auth/Page500"));
 
 // Dashboards components
-const Default = async(() => import("../pages/dashboards/index"));
+// const Default = async(() => import("../pages/dashboards/index"));
 const Assets = async(() => import("../pages/Assets"));
 const AssetDetail = async(() => import("../pages/assets/AssetDetail"));
 const Tickets = async(() => import("../pages/tickets/TableView"));
@@ -27,13 +27,13 @@ const UsersComponent = async(() => import("../pages/users/TableView"));
 const TicketDetail = async(() => import("../pages/tickets/Detail"));
 const UserDetail = async(() => import("../pages/users/Detail"));
 
-const dashboardsRoutes = {
-  id: "Dashboard",
-  path: "/dashboard",
-  icon: <PieChart />,
-  component: Default,
-  children: null
-};
+// const dashboardsRoutes = {
+//   id: "Dashboard",
+//   path: "/dashboard",
+//   icon: <PieChart />,
+//   component: Default,
+//   children: null
+// };
 
 const authRoutes = {
   id: "Auth",
@@ -106,7 +106,7 @@ const userDetail = {
 };
 
 export const dashboard = [
-  dashboardsRoutes,
+  // dashboardsRoutes,
   assetsRoutes,
   assetsDetail,
   ticketsRoutes,
@@ -118,7 +118,7 @@ export const dashboard = [
 export const auth = [authRoutes];
 
 export default [
-  dashboardsRoutes,
+  // dashboardsRoutes,
   assetsRoutes,
   ticketsRoutes,
   usersRoutes,

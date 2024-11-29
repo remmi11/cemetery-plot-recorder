@@ -382,12 +382,7 @@ class Assets extends Component {
             <Card>
               <CardContent pb={1}>
                 <Grid container spacing={6}>
-                  <Grid item md={2}>
-                    {storejs.get('user').edit_auth && <Button mr={2} variant="outlined" color="primary" onClick={(e) => this.setState({assetDetail: true, selectedAsset: 'new'})} title="New Asset">
-                      <PlusCircle />
-                    </Button>}
-                  </Grid>
-                  <Grid item md={4} mb={6}>
+                  <Grid item md={6} mb={6}>
                     <Search>
                       <SearchIconWrapper>
                         <SearchIcon />

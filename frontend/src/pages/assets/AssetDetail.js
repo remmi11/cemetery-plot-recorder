@@ -316,24 +316,6 @@ class AssetDetail extends Component {
     let { assetId } = this.props;
     const self = this;
 
-    // api.call('api/meridians/', {}, function(res){
-    //   let meridians = {};
-    //   res.forEach(item => {
-    //     meridians[item.code] = item.title;
-    //   })
-    //   self.meridians = meridians
-    //   console.log(self.meridians, '>>>>>>>>')
-    // })
-
-    // api.call('api/collections/', {}, function(res){
-    //   let collections = {};
-    //   res.forEach(item => {
-    //     collections[item.key] = item.name;
-    //   })
-    //   console.log(collections)
-    //   self.setState({collections})
-    // })
-
     if (assetId != 'new') {
       api.call('api/asset/' + assetId + "/", {}, function(res){
         let layers = "";
@@ -351,111 +333,68 @@ class AssetDetail extends Component {
 
           let center = [parseFloat(coordinates[0]), parseFloat(coordinates[1])]
 
-          if (res.join_type != 'route') {
-            bboxValue = [center[0] - 0.001, center[1] - 0.001, center[0] + 0.001, center[1] + 0.001]
-            
-            layers = <Layer type="circle" paint={{
-                  'circle-color': color
-                }}>
-              <Feature coordinates={center} />
-            </Layer>
-          } else {
-            isRoute = true;
-            // self.zoom = [15]
-
-            let geoLine = []
-            let i = 0
-            while (i<coordinates.length) {
-              console.log(coordinates[i], i)
-              if (coordinates[i].includes(",") || i == coordinates.length -1) {
-                if (parseFloat(coordinates[i]) == 0) {
-                  geoLine.push([parseFloat(coordinates[i-2]), parseFloat(coordinates[i-1])])
-                } else {
-                  geoLine.push([parseFloat(coordinates[i-1]), parseFloat(coordinates[i])])
-                }
-              }
-              i = i + 1;
-            }
-
-            const geojson = {
-              "type": "FeatureCollection",
-              "features": [
-                {
-                  "type": "Feature",
-                  "properties": {
-                    "id": 1
-                  },
-                  "geometry": {
-                    "type": "LineString",
-                    "coordinates": geoLine
-                  }
-                }
-              ]
-            }
-
-            bboxValue = bbox(geojson)
-            // error code
-            layers = <Layer type="line" paint={{
-                  'line-color': color,
-                  'line-width': 3
-                }}>
-              <Feature coordinates={geoLine} />
-            </Layer>
-          }
+          bboxValue = [center[0] - 0.001, center[1] - 0.001, center[0] + 0.001, center[1] + 0.001]
+          
+          layers = <Layer type="circle" paint={{
+                'circle-color': color
+              }}>
+            <Feature coordinates={center} />
+          </Layer>
         }
 
         self.setState({asset: res, layers: layers, canPathUpdate: self.checkCollection(res), isRoute: isRoute, bbox: bboxValue});
       })
-    } else {
-      self.getCounty()
-    }
+    } 
+    // else {
+    //   self.getCounty()
+    // }
 
-    api.call('api/ajax_data/', {type: 'clients'}, function(res){
-      let filter = []
-      res.forEach(item => {
-        item = item.replace(/ {2,}/g, ' ').replace();
+    // api.call('api/ajax_data/', {type: 'clients'}, function(res){
+    //   let filter = []
+    //   res.forEach(item => {
+    //     item = item.replace(/ {2,}/g, ' ').replace();
 
-        if (item.slice(-1) == '.') {
-          item = item.slice(0, -1)
-        }
-        if (!filter.includes(item)) {
-          filter.push(item)
-        }
-      })
-      filter = filter.map(i => {
-        return {value: i, label: i}
-      })
-      self.setState({clients: filter})
-    })
-    api.call('api/ajax_data/', {type: 'certified_by'}, function(res){
-      res = res.map(i => {
-        return {value: i, label: i}
-      })
-      self.setState({certifyBy: res})
-    })
-    api.call('api/ajax_data/', {type: 'map_no'}, function(res){
-      res = res.map(i => {
-        return {value: i, label: i}
-      })
-      self.setState({mapno: res})
-    })
-    api.call('api/ajax_data/', {type: 'lenders'}, function(res){
-      let filter = []
-      res.forEach(item => {
-        item = item.replace(/ {2,}/g, ' ').replace();
+    //     if (item.slice(-1) == '.') {
+    //       item = item.slice(0, -1)
+    //     }
+    //     if (!filter.includes(item)) {
+    //       filter.push(item)
+    //     }
+    //   })
+    //   filter = filter.map(i => {
+    //     return {value: i, label: i}
+    //   })
+    //   self.setState({clients: filter})
+    // })
+    // api.call('api/ajax_data/', {type: 'certified_by'}, function(res){
+    //   res = res.map(i => {
+    //     return {value: i, label: i}
+    //   })
+    //   self.setState({certifyBy: res})
+    // })
+    // api.call('api/ajax_data/', {type: 'map_no'}, function(res){
+    //   res = res.map(i => {
+    //     return {value: i, label: i}
+    //   })
+    //   self.setState({mapno: res})
+    // })
+    // api.call('api/ajax_data/', {type: 'lenders'}, function(res){
+    //   let filter = []
+    //   res.forEach(item => {
+    //     item = item.replace(/ {2,}/g, ' ').replace();
 
-        if (item.slice(-1) == '.') {
-          item = item.slice(0, -1)
-        }
-        if (!filter.includes(item)) {
-          filter.push(item)
-        }
-      })
-      filter = filter.map(i => {
-        return {value: i, label: i}
-      })
-      self.setState({lenders: filter})
-    })
+    //     if (item.slice(-1) == '.') {
+    //       item = item.slice(0, -1)
+    //     }
+    //     if (!filter.includes(item)) {
+    //       filter.push(item)
+    //     }
+    //   })
+    //   filter = filter.map(i => {
+    //     return {value: i, label: i}
+    //   })
+    //   self.setState({lenders: filter})
+    // })
   }
 
   getCounty() {
@@ -535,42 +474,6 @@ class AssetDetail extends Component {
 
   }
 
-  onAutoProjectNo() {
-    let { asset, duplication, collections } = this.state;
-    let token = storejs.get('token', null)
-    let api = new ApiInterface(token.access);
-    let self = this;
-
-    if (asset.collection) {
-      let prefix = ""
-      console.log(collections)
-      prefix = "ID"
-      Object.keys(collections).forEach(collection => {
-        if (asset.collection == collection && ['Furman Land Surveyors, Inc.', 'GDI, Inc. - Amarillo', 'GDI, Inc. - Canadian'].includes(asset.collection) === false) {
-          prefix = asset.collection[0]
-        }
-      })
-
-      api.create('api/ajax_auto_pn/', {collection: asset.collection}, function(res){
-        if (res.pid) {
-          asset.project_no = prefix + '_' + (Math.abs(res.pid) + 1).toString()
-        } else {
-          asset.project_no = prefix + '_1'
-        }
-        self.setState(asset)
-      })
-    } else {
-      this.setState({notification_text: "Survey collection should be selected.", notification: true, notification_type: 'error'});
-    }
-  }
-
-  onAutoLocation() {
-    let { asset } = this.state;
-    asset.folder_path = this.buildFolderPath(asset);
-
-    this.setState({asset})
-  }
-
   loadLegal(type, e, value, init) {
     const self = this;
 
@@ -636,52 +539,22 @@ class AssetDetail extends Component {
 
   submitForm = () => {
     let { asset, saveType, duplication } = this.state;
-    let token = storejs.get('token', null)
+    let { assetId } = this.props;
+    let token = storejs.get('token', null);
     let api = new ApiInterface(token.access);
     let self = this;
     let user = storejs.get('user')
 
     let payload = JSON.parse(JSON.stringify(asset))
 
-    if (this.props.assetId != 'new') {
+    if (assetId != 'new') {
       console.log("saving existing asset form...")
 
-      api.update('api/asset/' + asset.id.toString() + "/", payload, function(res){
-        if (saveType == 'save') {
-          self.props.setSelectedAsset(asset.id.toString())
-        } else if (saveType == 'new') {
-          self.props.closeAndNew();
-        } else {
-          self.props.closeAssetDetail();
-        }
-        // self.onReload();
+      api.update(`api/asset/${assetId}/`, payload, function(res){
+        self.props.setSelectedAsset(asset.id.toString())
+        // self.props.closeAssetDetail();
       })
-    } else {
-      console.log("saving new asset...", payload)
-      
-      api.create('api/asset_create/', payload, function(res){
-        if (!res.id) {
-          return;
-        }
-        self.setState({duplication: false})
-        
-        if (saveType == 'save') {
-          payload.id = res.id;
-          self.setState({saveTooltip: false, asset: payload});
-          self.props.setSelectedAsset(res.id.toString())
-        } else if (saveType == 'new') {
-          self.props.closeAndNew();
-        } else {
-          self.props.closeAssetDetail();
-        }
-
-        console.log("new asset created...", self.props);
-        self.props.onReload(); 
-        self.props.closeAssetDetail(); 
-        console.log("after onreload")
-
-      })
-    }
+    } 
     self.setState({saveTooltip: false});
 
   }
@@ -691,85 +564,22 @@ class AssetDetail extends Component {
     
   }
 
-  onLocation() {
-    let { asset, saveType, duplication } = this.state;
-    let token = storejs.get('token', null)
-    let api = new ApiInterface(token.access);
-    let self = this;
-    let user = storejs.get('user')
-    let isRoute = false
+  // // The event function to delete an asset.
+  // onAssetDelete(e) {
+  //   let { asset } = this.state;
+  //   let token = storejs.get('token', null)
+  //   let api = new ApiInterface(token.access);
+  //   const self = this;
 
-    let payload = JSON.parse(JSON.stringify(asset))
-    api.create('api/get_location/', payload, function(res){
-      if (!res || !res.location || res.location.length == 0) {
-        return
-      }
-      // self.center = res.location;
-      // self.zoom = [17];
+  //   let r = window.confirm("Are you sure you want to delete the selected asset?");
 
-      let bboxValue = [res.location[0] - 0.001, res.location[1] - 0.001, res.location[0] + 0.001, res.location[1] + 0.001]
-
-      let color = ASSET_COLORS[asset.join_type] ? ASSET_COLORS[asset.join_type] : '#000000';
-      self.removeAll();
-      let layers = "";
-      if (asset.join_type != 'route') {
-        layers = <Layer type="circle" paint={{
-              'circle-color': color
-            }}>
-          <Feature coordinates={res.location} />
-        </Layer>
-      } else {
-        isRoute = true
-        layers = <Layer type="line" paint={{
-              'line-color': color,
-              'line-width': 3
-            }}>
-          <Feature coordinates={res.location} />
-        </Layer>
-      }
-
-      console.log('>>>>><<<<<<<', bboxValue, asset.join_type, layers, isRoute, color)
-      self.setState({layers: [], bbox: bboxValue, isRoute: isRoute})
-      setTimeout(()=>{
-        self.setState({layers: layers})
-      }, 2000)
-    })
-  }
-
-  // The event function to delete an asset.
-  onAssetDelete(e) {
-    let { asset } = this.state;
-    let token = storejs.get('token', null)
-    let api = new ApiInterface(token.access);
-    const self = this;
-
-    let r = window.confirm("Are you sure you want to delete the selected asset?");
-
-    if (r) {
-      api.delete('api/asseta/' + asset.id + '/', function(res){
-        self.setState({notification_text: "Asset deleted.", notification: true, notification_type: 'success'});
-        setTimeout(function(){self.props.history.push('/assets');}, 3000);
-      });
-    }
-  }
-
-  onStreetView(e) {
-    let { asset } = this.state;
-    let token = storejs.get('token', null)
-    let api = new ApiInterface(token.access);
-    const self = this;
-
-    let url = 'api/street_view/' + asset.id + '/?dt=1'
-    if (asset.latitude) {
-      url += '&latitude=' + asset.latitude
-    }
-    if (asset.longitude) {
-      url += '&longitude=' + asset.longitude
-    }
-    api.call(url, {}, function(res){
-      self.setState({streetview: true, streetviewUrl: res.url})
-    });
-  }
+  //   if (r) {
+  //     api.delete('api/asseta/' + asset.id + '/', function(res){
+  //       self.setState({notification_text: "Asset deleted.", notification: true, notification_type: 'success'});
+  //       setTimeout(function(){self.props.history.push('/assets');}, 3000);
+  //     });
+  //   }
+  // }
 
   // The function to close the notification.
   handleClose() {
@@ -813,80 +623,6 @@ class AssetDetail extends Component {
     return [[minLat, minLng], [maxLat, maxLng]];
   }
 
-  onEditGeoConfirm(feature, confirm) {
-    confirmAlert({
-      customUI: ({ onClose }) => {
-        return (
-          <ConfirmSection>
-            <div className='custom-ui'>
-              <div className="title">
-                <WarningIcon /> <h1>CONFIRM</h1>
-              </div>
-              <p>Are you sure you want to update this project's location?</p>
-              <button
-                className="active"
-                onClick={() => {
-                  this.onEditGeo(feature, true);
-                  onClose();
-                }}
-              >
-                Yes, proceed!
-              </button>
-              <button onClick={() => {
-                this.onEditGeo(feature, false);
-                onClose();
-              }}>No, cancel</button>
-            </div>
-          </ConfirmSection>
-        );
-      }
-    });
-  }
-
-  onEditGeo(feature, confirm) {
-    let {asset} = this.state;
-    const self = this;
-
-    if (confirm) {
-      let geo = feature.features[0].geometry.coordinates;
-      let color = ASSET_COLORS[asset.join_type] ? ASSET_COLORS[asset.join_type] : '#000000';
-
-      this.removeAll();
-
-      let geometry = "";
-      let layers = "";
-
-      console.log(geo, '>>>>>>>>>')
-      if (asset.join_type != 'route') {
-        geometry = "SRID=4326;POINT (" + geo.join(" ") + ")";
-        layers = <Layer type="circle" paint={{
-              'circle-color': color
-            }}>
-          <Feature coordinates={geo} />
-        </Layer>
-      } else {
-        geometry = geo.map(g => `${g[0]} ${g[1]}`)
-        geometry = "SRID=4326;LINESTRING (" + geometry + ")";
-        layers = <Layer type="line" paint={{
-              'line-color': color,
-              'line-width': 3
-            }}>
-          <Feature coordinates={geo} />
-        </Layer>
-      }
-      asset.geom = geometry;
-      this.setState({layers: [], asset})
-      setTimeout(()=>{
-        self.setState({layers: layers})
-      }, 2000)
-      this.updateLocation = 'pin'
-    } else {
-      if (this.updateLocation == 'pin') {
-        this.updateLocation = null;
-      }
-      this.removeAll();
-    }
-  }
 
   removeAll(feature) {
     if (this.drawControl) {
@@ -894,159 +630,6 @@ class AssetDetail extends Component {
     }
   }
 
-  createCollection(e) {
-    let { collections } = this.state;
-    let token = storejs.get('token', null)
-    let api = new ApiInterface(token.access);
-    const self = this;
-
-    // api.create("api/collections/", {name: e}, function(res){
-    //   collections[res.key] = res.name;
-    //   self.setState({collections})
-    // })
-  }
-
-  handleFileChange(files) {
-    console.log(files)
-    let token = storejs.get('token', null)
-    let api = new ApiInterface(token.access);
-    let {asset} = this.state;
-    const self = this
-
-    if (files && files.length) {
-      const formData = new FormData();
-      const file = files[0];
-      formData.append('file', new Blob([file], { type: file.type }), file.name || 'file')
-
-      api.upload("api/files/", formData, function(res){
-        console.log(res)
-
-        let coordinates = res.res.split('LINESTRING (')[1].split(')')[0]
-        let geometry = "SRID=4326;LINESTRING (" + coordinates + ")";
-        coordinates = coordinates.split(",").map(coor => {
-          coor = coor.trim().split(" ")
-          return [parseFloat(coor[0]), parseFloat(coor[1])]
-        })
-
-        let center = [parseFloat(coordinates[0][0]), parseFloat(coordinates[0][1])]
-        // self.center = center
-        // self.zoom = [15]
-        
-        let bboxValue = [center[0] - 0.001, center[1] - 0.001, center[0] + 0.001, center[1] + 0.001]
-
-        console.log(coordinates)
-
-        const geojson = {
-          "type": "FeatureCollection",
-          "features": [
-            {
-              "type": "Feature",
-              "properties": {
-                "id": 1
-              },
-              "geometry": {
-                "type": "LineString",
-                "coordinates": coordinates
-              }
-            }
-          ]
-        }
-
-        bboxValue = bbox(geojson)
-        // error code
-        let layers = <Layer type="line" paint={{
-              'line-color': 'green',
-              'line-width': 3
-            }}>
-          <Feature coordinates={coordinates} />
-        </Layer>
-        
-        asset.geom = geometry;
-        self.setState({layers: [], asset, bbox: bboxValue})
-
-        setTimeout(() => {
-          self.setState({layers: layers})
-        }, 2000)
-      })
-    }
-  }
-
-  handlePlace(place) {
-    console.log(place, place.geometry.location.lat(), place.geometry.location.lng())
-    let token = storejs.get('token', null)
-    let api = new ApiInterface(token.access);
-    const self = this
-
-    api.call("api/get-legal/", {
-      lat: place.geometry.location.lat(),
-      lng: place.geometry.location.lng()
-    }, function(res){
-      let { asset } = self.state;
-      let update = {}
-
-      if (res.data && res.data[0]) {
-        asset.county = res.data[3].trim();
-        asset.sub_name = res.data[4].trim();
-        asset.sub_unit = res.data[5].trim();
-        asset.sub_block = res.data[6].trim();
-
-        if (res.data[7].trim() && !asset.geom) {
-          asset.geom = `SRID=4326;${res.data[8]}`;
-          asset.sub_lot = res.data[7];
-          // display point in map
-          let coordinates = asset.geom.split('(')[1].split(')')[0].split(' ')
-          let color = ASSET_COLORS[res.data[2]] ? ASSET_COLORS[res.data[2]] : '#000000';
-
-          let center = [parseFloat(coordinates[0]), parseFloat(coordinates[1])]
-
-          let bboxValue = [center[0] - 0.001, center[1] - 0.001, center[0] + 0.001, center[1] + 0.001]
-          let layers = <Layer type="circle" paint={{
-                'circle-color': color
-              }}>
-            <Feature coordinates={center} />
-          </Layer>
-          self.setState({layers: [], bbox: bboxValue, asset})
-          setTimeout(()=>{
-            self.setState({layers: layers})
-          }, 2000)
-        }
-
-        // self.getCounty()
-        // self.loadLegal('county', asset, res.data[3].trim(), 'init')
-        // self.loadLegal('level1', asset, res.data[4].trim(), 'init')
-        // self.loadLegal('level2', asset, res.data[5].trim(), 'init')
-        // self.loadLegal('level3', asset, res.data[6].trim(), 'init')
-      }
-    })
-
-
-    let { asset } = this.state;
-    asset.situs_street = ""
-    if (place?.address_components) {
-      let address_components = place?.address_components
-      address_components.forEach(item => {
-        if (item.types.includes('street_number')) {
-          asset.situs_street = item.short_name
-        }
-        if (item.types.includes("route")) {
-          asset.situs_street = asset.situs_street + " " + item.short_name
-          asset.situs_street = asset.situs_street.trim()
-        }
-        if (item.types.includes("locality")) {
-          asset.situs_city = item.short_name
-        }
-        if (item.types.includes("administrative_area_level_1")) {
-          asset.situs_state = item.short_name
-        }
-        if (item.types.includes("postal_code")) {
-          asset.situs_zip = item.short_name
-        }
-      })
-      asset.formatted_address = place?.formatted_address
-      
-      this.setState({asset})
-    }
-  }
 
   render() {
     const { asset, tab, comment, saveTooltip, duplication, canPathUpdate, bbox } = this.state;
@@ -1083,7 +666,7 @@ class AssetDetail extends Component {
             </Grid>
           </Typography>
 
-          <EditSection container spacing={6}>
+          <EditSection spacing={6}>
             <Grid item md={12}>
               <GridContent container>
                 <Grid item md={6} xs={12} style={{maxWidth: '48%', flexBasis: '48%', marginRight: '2%', marginTop: '20px'}}>
@@ -1142,41 +725,41 @@ class AssetDetail extends Component {
                     <Grid item md={6} xs={12}>
                       <FormControl margin="normal" fullWidth>
                         <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>County</div>
-                        <TextField id="county" name="county" value={asset.county} label="" fullWidth />
+                        <TextField disabled id="county" name="county" value={asset.county} label="" fullWidth />
                       </FormControl>
                     </Grid>
                     <Grid item md={1} xs={12}></Grid>
                     <Grid item md={5} xs={12}>
                       <FormControl margin="normal" fullWidth>
                         <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Addition</div>
-                        <TextField id="addition" name="addition" value={asset.addition} label="" fullWidth />
+                        <TextField disabled id="addition" name="addition" value={asset.addition} label="" fullWidth />
                       </FormControl>
                     </Grid>
                     <Grid item md={6} xs={12}>
                       <FormControl margin="normal" fullWidth>
                         <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Unit</div>
-                        <TextField id="unit" name="unit" value={asset.unit} label="" fullWidth />
+                        <TextField disabled id="unit" name="unit" value={asset.unit} label="" fullWidth />
                       </FormControl>
                     </Grid>
                     <Grid item md={1} xs={12}></Grid>
                     <Grid item md={5} xs={12}>
                       <FormControl margin="normal" fullWidth>
                         <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Block</div>
-                        <TextField id="block" name="block" value={asset.block} label="" fullWidth />
+                        <TextField disabled id="block" name="block" value={asset.block} label="" fullWidth />
                       </FormControl>
                     </Grid>
 
                     <Grid item md={6} xs={12}>
                       <FormControl margin="normal" fullWidth>
                         <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Lot</div>
-                        <TextField id="lot" name="lot" value={asset.lot} label="" fullWidth />
+                        <TextField disabled id="lot" name="lot" value={asset.lot} label="" fullWidth />
                       </FormControl>
                     </Grid>
                     <Grid item md={1} xs={12}></Grid>
                     <Grid item md={5} xs={12}>
                       <FormControl margin="normal" fullWidth>
                         <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Plot</div>
-                        <TextField id="plot" name="plot" value={asset.plot} label="" fullWidth />
+                        <TextField disabled id="plot" name="plot" value={asset.plot?asset.plot:''} label="" fullWidth />
                       </FormControl>
                     </Grid>
                     
@@ -1187,7 +770,7 @@ class AssetDetail extends Component {
             </Grid>
           </EditSection>
 
-          <Grid container spacing={6} style={{ 'margin-top': '20px', }}>
+          <Grid container spacing={6} style={{ 'marginTop': '20px', }}>
             <Grid item md={12} style={{ marginTop: '50px', padding: '0px' }}>
               <hr></hr>
             </Grid>
@@ -1212,23 +795,6 @@ class AssetDetail extends Component {
           </Grid>
 
         </EditForm>
-
-        <Dialog
-          open={this.state.streetview}
-          onClose={(e)=>this.setState({streetview: false})}
-          aria-labelledby="form-dialog-title"
-          // style={{maxWidth: '650px'}}
-        >
-          <DialogTitle id="form-dialog-title">Street View</DialogTitle>
-          <DialogContent style={{textAlign: 'center'}}>
-            <img src={this.state.streetviewUrl} />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={(e)=>this.setState({streetview: false})} color="primary" variant="outlined" >
-              Close
-            </Button>
-          </DialogActions>
-        </Dialog>
 
         <Snackbar 
           anchorOrigin={{

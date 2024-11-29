@@ -921,7 +921,7 @@ class AssetATableView extends Component {
     return (
       <ListView container spacing={6}>
         <Grid item md={6} mb={6} className="label">
-          <span className="t-label pavements active">{this.props.total} Results</span>
+          <span className="t-label pavements active">{this.props.total} Plots</span>
 
           {bound && <FormControlLabel
             style={{marginLeft: '10px'}}
