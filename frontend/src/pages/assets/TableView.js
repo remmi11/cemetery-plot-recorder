@@ -396,7 +396,6 @@ class AssetATableView extends Component {
       }
     })
 
-    this.setState({loader: true});
     this.setState({filter, filterIcon: isFilered, filterBubbles});
     storejs.set('assetPrePage', 'table');
   }
@@ -413,11 +412,11 @@ class AssetATableView extends Component {
     })
 
     if (nextProps.lAssets != lAssets) {
-      console.log('assets')
+      // console.log('assets')
       this.updateData(lAssets);
     }
     if (nextProps.filter != filter) {
-      console.log('filter')
+      // console.log('filter')
       this.setState({filter});
     }
     if (nextProps.globalFilter != globalFilter) {
