@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 
 import styled from "styled-components";
-import { Link } from "react-router-dom";
 import storejs from 'store';
 
 import Helmet from 'react-helmet';
@@ -18,7 +17,6 @@ import { connect } from "react-redux";
 
 import ApiInterface from '../../lib/ApiInterface.js'
 import { setAuth, setToken } from '../../redux/actions/authActions.js'
-import * as config from '../../config.js';
 
 // Local style objects.
 const Button = styled(MuiButton)(spacing);
@@ -104,7 +102,7 @@ class SignIn extends Component {
       <Wrapper>
         <Helmet title="Sign In" />
 
-        {this.state.error != "" && <Alert severity="error">{this.state.error}</Alert>}
+        {this.state.error !== "" && <Alert severity="error">{this.state.error}</Alert>}
         <ValidatorForm ref="form" onSubmit={this.handleSubmit} onError={errors => console.log(errors)}>
           <FormControl margin="normal" required fullWidth>
             <TextValidator id="username" name="username" autoComplete="username" autoFocus

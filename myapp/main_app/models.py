@@ -13,20 +13,12 @@ class CustomUser(AbstractUser):
 
 
 class CemeteryPlot(models.Model):
-    ogc_fid = models.IntegerField()
     first_name = models.CharField(max_length=254, blank=True, null=True)
     middle_name = models.CharField(max_length=254, blank=True, null=True)
     last_name = models.CharField(max_length=254, blank=True, null=True)
     suffix = models.CharField(max_length=50, blank=True, null=True)
     maiden_name = models.CharField(max_length=254, blank=True, null=True)
     is_veteran = models.BooleanField(default=False)
-    county = models.CharField(max_length=50, blank=True, null=True)
-    addition = models.CharField(max_length=50, blank=True, null=True)
-    unit = models.CharField(max_length=50, blank=True, null=True)
-    block = models.CharField(max_length=50, blank=True, null=True)
-    lot = models.CharField(max_length=50, blank=True, null=True)
-    plot = models.CharField(max_length=50, blank=True, null=True)
-    geom = models.GeometryField(null=True, blank=True)
     author = models.ForeignKey(CustomUser, related_name='plots', null=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -46,9 +38,10 @@ class MasterGeom(models.Model):
     lot = models.CharField(max_length=50, blank=True, null=True)
     plot = models.CharField(max_length=50, blank=True, null=True)
     geom = models.GeometryField(null=True, blank=True)
-    # created_at = models.DateTimeField(auto_now_add=True)
-    # updated_at = models.DateTimeField(auto_now=True)
+    cemetery_plot = models.OneToOneField(CemeteryPlot, null=True, blank=True, 
+                                        on_delete=models.SET_NULL, related_name='geom')
 
     class Meta:
         db_table = 'master_geom'
+
 

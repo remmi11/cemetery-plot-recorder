@@ -1,75 +1,39 @@
 import React, { Component } from "react";
 import styled, { withTheme } from "styled-components";
-import PropTypes from 'prop-types';
 import storejs from 'store';
 
 import Helmet from 'react-helmet';
-import DataTable from 'react-data-table-component';
 import ReactMapboxGl, {
   Layer, Feature
 } from 'react-mapbox-gl';
-import DrawControl from 'react-mapbox-gl-draw'
-import bbox from '@turf/bbox';
-
-import { confirmAlert } from 'react-confirm-alert'; // Import
-
-import Autocomplete from "react-google-autocomplete";
 
 import {
   Grid,
   TextField,
-  InputAdornment,
-  TextareaAutosize,
   Select as MuiSelect,
   Typography as MuiTypography,
   Card as MuiCard,
   CardContent as MuiCardContent,
   FormControl as MuiFormControl,
-  MenuItem,
   Button as MuiButton,
-  Tabs,
-  Tab,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Snackbar,
-  Input
 } from "@material-ui/core";
 
 import {
   ArrowLeft
 } from "react-feather";
 
-import {
-  RestoreFromTrash,
-  Collections,
-  AddCircleOutline as AddCircleOutlineIcon,
-  Edit as EditIcon,
-  Save as SaveIcon,
-  Print as PrintIcon,
-  FileCopy,
-  DirectionsWalk,
-  Report,
-  Warning as WarningIcon
-} from "@material-ui/icons";
 
 import { spacing } from "@material-ui/system";
 import { Alert as MuiAlert } from '@material-ui/lab';
 
-import { Link } from "react-router-dom"
-import { ValidatorForm, TextValidator, SelectValidator } from 'react-material-ui-form-validator';
+import { ValidatorForm } from 'react-material-ui-form-validator';
 import ApiInterface from '../../lib/ApiInterface.js';
 import * as config from '../../config.js';
-import Select from 'react-select';
-import CreatableSelect from 'react-select/creatable';
 
 import {
-  PlusCircle,
   Upload
 } from "react-feather";
-
-import Files from 'react-files'
 
 import '../../App.css'
 
@@ -345,56 +309,7 @@ class AssetDetail extends Component {
         self.setState({asset: res, layers: layers, canPathUpdate: self.checkCollection(res), isRoute: isRoute, bbox: bboxValue});
       })
     } 
-    // else {
-    //   self.getCounty()
-    // }
-
-    // api.call('api/ajax_data/', {type: 'clients'}, function(res){
-    //   let filter = []
-    //   res.forEach(item => {
-    //     item = item.replace(/ {2,}/g, ' ').replace();
-
-    //     if (item.slice(-1) == '.') {
-    //       item = item.slice(0, -1)
-    //     }
-    //     if (!filter.includes(item)) {
-    //       filter.push(item)
-    //     }
-    //   })
-    //   filter = filter.map(i => {
-    //     return {value: i, label: i}
-    //   })
-    //   self.setState({clients: filter})
-    // })
-    // api.call('api/ajax_data/', {type: 'certified_by'}, function(res){
-    //   res = res.map(i => {
-    //     return {value: i, label: i}
-    //   })
-    //   self.setState({certifyBy: res})
-    // })
-    // api.call('api/ajax_data/', {type: 'map_no'}, function(res){
-    //   res = res.map(i => {
-    //     return {value: i, label: i}
-    //   })
-    //   self.setState({mapno: res})
-    // })
-    // api.call('api/ajax_data/', {type: 'lenders'}, function(res){
-    //   let filter = []
-    //   res.forEach(item => {
-    //     item = item.replace(/ {2,}/g, ' ').replace();
-
-    //     if (item.slice(-1) == '.') {
-    //       item = item.slice(0, -1)
-    //     }
-    //     if (!filter.includes(item)) {
-    //       filter.push(item)
-    //     }
-    //   })
-    //   filter = filter.map(i => {
-    //     return {value: i, label: i}
-    //   })
-    //   self.setState({lenders: filter})
-    // })
+    
   }
 
   getCounty() {
@@ -442,99 +357,17 @@ class AssetDetail extends Component {
 
   // Event function to edit each fields in an asset.
   handleChange(e, type) {
-    console.log("inside handlechange....", type, e.target.name, e.target.value)
-
     let { asset, duplication } = this.state;
     const self = this;
 
     if (type == 'first_name' || type == 'last_name' || type == 'middle_name' || type == 'suffix' || type == 'maiden_name') {
-      asset[type] = e.target.value;
+      asset.cemetery_plot[type] = e.target.value;
       this.setState(asset);
-    } else if (type == 'collection') {
-      asset[type] = e.target.value;
-      this.setState({asset, canPathUpdate: this.checkCollection(asset)});
     } else { 
-      if (['county', 'addition', 'unit', 'block', 'lot', 'plot'].includes(type)) {
-        self.loadLegal(type, e)
-      } else {
         asset[e.target.name] = e.target.value;
         this.setState(asset);
-      }
     }
 
-    // if (e.target && e.target.name == 'project_no') {
-    //   this.setState({duplication: false})
-    // }
-    // if (e.target && e.target.name == 'collection') {
-    //   this.setState({canPathUpdate: this.checkCollection()})
-    // }
-
-    console.log(asset)
-
-
-  }
-
-  loadLegal(type, e, value, init) {
-    const self = this;
-
-    let { asset } = self.state;
-
-    if (init) {
-      asset = e;
-    }
-
-    let token = storejs.get('token', null)
-    let api = new ApiInterface(token.access);
-    let payload = {}
-    let url = "api/ajax_load_data/"
-
-    if (type == 'county') {
-      payload['county'] = init ? value : e.target.value
-      payload['type'] = 'addition'
-      api.create(url, payload, function(res){
-        self.setState({level1: res})
-      })
-    } else if (type == 'addition') {
-      payload['county'] = asset.county
-      payload['addition'] = init ? value : e.target.value
-      payload['type'] = 'unit'
-      api.create(url, payload, function(res){
-        self.setState({level2: res})
-      })
-    } else if (type == 'unit') {
-      payload['county'] = asset.county
-      payload['addition'] = asset.addition
-      payload['unit'] = init ? value : e.target.value
-      payload['type'] = 'block'
-      api.create(url, payload, function(res){
-        self.setState({level3: res})
-      })
-    } else if (type == 'block') {
-      payload['county'] = asset.county
-      payload['addition'] = asset.addition
-      payload['unit'] = asset.unit
-      payload['block'] = init ? value : e.target.value
-      payload['type'] = 'lot'
-      api.create(url, payload, function(res){
-          self.setState({level4: res})
-      })
-    }
-    else if (type == 'lot') {
-      payload['county'] = asset.county
-      payload['addition'] = asset.addition
-      payload['unit'] = asset.unit
-      payload['block'] = asset.lot
-      payload['lot'] = init ? value : e.target.value
-      payload['type'] = 'plot'
-      api.create(url, payload, function(res){
-          self.setState({level5: res})
-      })
-    }
-
-    if (!init) {
-      asset[e.target.name] = e.target.value;
-      this.setState({asset: asset})
-    }
   }
 
   submitForm = () => {
@@ -545,17 +378,21 @@ class AssetDetail extends Component {
     let self = this;
     let user = storejs.get('user')
 
-    let payload = JSON.parse(JSON.stringify(asset))
+    let payload = JSON.parse(JSON.stringify(asset.cemetery_plot))
 
     if (assetId != 'new') {
-      console.log("saving existing asset form...")
+      console.log("saving asset form...")
+
+      self.setState({saveTooltip: true});
 
       api.update(`api/asset/${assetId}/`, payload, function(res){
         self.props.setSelectedAsset(asset.id.toString())
-        // self.props.closeAssetDetail();
-      })
+        self.props.closeAssetDetail();
+
+        self.setState({saveTooltip: false});
+      });
+
     } 
-    self.setState({saveTooltip: false});
 
   }
 
@@ -623,7 +460,6 @@ class AssetDetail extends Component {
     return [[minLat, minLng], [maxLat, maxLng]];
   }
 
-
   removeAll(feature) {
     if (this.drawControl) {
       this.drawControl.draw.deleteAll()
@@ -656,13 +492,12 @@ class AssetDetail extends Component {
                 <Button variant="outlined"
                   style={{ marginTop: '-10px', marginRight: '15px'}}
                   onClick={() => this.props.closeAssetDetail()}>
-                    <ArrowLeft />
+                  <ArrowLeft />
                 </Button> 
-                {this.props.assetId == 'new' ? 'Plot Info' : asset.project_no}
+                Plot Info
               </TitleGroup>
               <Grid item md={5} mb={6}>
-              </Grid>
-              
+              </Grid>              
             </Grid>
           </Typography>
 
@@ -678,7 +513,7 @@ class AssetDetail extends Component {
                       <FormControl margin="normal" fullWidth>
                         <span style={{color: 'rgba(0, 0, 0, 0.54)', fontSize: '12px'}}>First Name</span>
                         <TextField id="first_name" name="first_name"
-                          value={asset.first_name} label=""
+                          value={asset.cemetery_plot?asset.cemetery_plot.first_name:''} label=""
                           onChange={(e) => this.handleChange(e, 'first_name')} fullWidth />
                       </FormControl>
                     </Grid>
@@ -686,7 +521,7 @@ class AssetDetail extends Component {
                       <FormControl margin="normal" fullWidth>
                         <span style={{color: 'rgba(0, 0, 0, 0.54)', fontSize: '12px'}}>Last Name</span>
                         <TextField id="last_name" name="last_name"
-                          value={asset.last_name} label=""
+                          value={asset.cemetery_plot?asset.cemetery_plot.last_name:''} label=""
                           onChange={(e) => this.handleChange(e, 'last_name')} fullWidth />
                       </FormControl>
                     </Grid>                  
@@ -694,7 +529,7 @@ class AssetDetail extends Component {
                       <FormControl margin="normal" fullWidth>
                         <span style={{color: 'rgba(0, 0, 0, 0.54)', fontSize: '12px'}}>Middle</span>
                         <TextField id="middle_name" name="middle_name"
-                          value={asset.middle_name} label=""
+                          value={asset.cemetery_plot?asset.cemetery_plot.middle_name:''} label=""
                           onChange={(e) => this.handleChange(e, 'middle_name')} fullWidth />
                       </FormControl>
                     </Grid>                  
@@ -702,7 +537,7 @@ class AssetDetail extends Component {
                       <FormControl margin="normal" fullWidth>
                         <span style={{color: 'rgba(0, 0, 0, 0.54)', fontSize: '12px'}}>Suffix</span>
                         <TextField id="suffix" name="suffix"
-                          value={asset.suffix} label=""
+                          value={asset.cemetery_plot?asset.cemetery_plot.suffix:''} label=""
                           onChange={(e) => this.handleChange(e, 'suffix')} fullWidth />
                       </FormControl>
                     </Grid>                  
@@ -710,7 +545,7 @@ class AssetDetail extends Component {
                       <FormControl margin="normal" fullWidth>
                         <span style={{color: 'rgba(0, 0, 0, 0.54)', fontSize: '12px'}}>Maiden Name</span>
                         <TextField id="maiden_name" name="maiden_name"
-                          value={asset.maiden_name} label=""
+                          value={asset.cemetery_plot?asset.cemetery_plot.maiden_name:''} label=""
                           onChange={(e) => this.handleChange(e, 'maiden_name')} fullWidth />
                       </FormControl>
                     </Grid>                  

@@ -203,7 +203,8 @@ class Assets extends Component {
   }
 
   getDataFromServer(filter, globalFilter, page=1, sort=null, gf=null, isBbox=true) {
-    let token = storejs.get('token', null)
+
+    let token = storejs.get('token', null);
     let api = new ApiInterface(token.access);
     const self = this;
     let { assets } = this.state
@@ -249,8 +250,6 @@ class Assets extends Component {
         assets = res.geojson;
       }
 
-      console.log('got geojson response....', assets, res.bbox)
-
       let temp = {assets: assets, total: res.total, page: page, bbox: res.bbox};
       if (sort) {
         temp.sort_column = sort.column;
@@ -260,7 +259,11 @@ class Assets extends Component {
       self.props.set_asset(assets);
       self.setState(temp);
       self.assets = assets;
+
+      
     })
+
+
   }
 
   // init function to load the assets with geojson format.
@@ -367,6 +370,10 @@ class Assets extends Component {
     }, 1000)
   }
 
+  showAssetDialog = (selectedAssetId) => {
+    this.setState({selectedAsset: selectedAssetId, assetDetail: true});
+  }
+
   render() {
     const { asset, toggle, filterClose} = this.state;
     const user = storejs.get('user', {});
@@ -415,6 +422,7 @@ class Assets extends Component {
                   onUpdateFilter={(filter) => this.onUpdateFilter(filter)} 
                   convertPointFormat={(geo) => this.convertPointFormat(geo)} 
                   onMapped={(mapped) => this.onMapped(mapped)}
+                  showAssetDialog={(assetId) => this.showAssetDialog(assetId)}
                 />}
                 {this.state.toggle == 'table' && <TableView
                   lAssets={this.state.assets}
@@ -447,7 +455,8 @@ class Assets extends Component {
           fullWidth={true}
         >
           <DialogContent>
-            <AssetDetail assetId={this.state.selectedAsset}
+            <AssetDetail 
+              assetId={this.state.selectedAsset}
               onReload={()=>this.reload()}
               closeAssetDetail={() => {this.setState({assetDetail: false})}}
               setSelectedAsset={(id) => {this.setState({selectedAsset: id})}}

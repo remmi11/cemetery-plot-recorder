@@ -222,7 +222,8 @@ class TicketDetail extends Component {
     let { ticketId } = this.props;
     const self = this;
 
-    console.log(ticketId)
+    console.log('TicketId =', ticketId)
+
     if (ticketId.includes('projectno-')) {
       let asset_id = ticketId.replace('projectno-', '');
       api.call('api/asset/' + asset_id + "/", {}, function(res){
@@ -233,81 +234,19 @@ class TicketDetail extends Component {
         if (res.pid) {
           ticket['accountNo'] = res.pid
         }
-
-        if (res.join_type) {
-          self.getCounty(res.join_type)
-          ticket['surveyType'] = res.join_type;
-          ticket['county'] = res.county;
-          res['surveyType'] = res.join_type;
-          self.loadLegal('county', res, res.county, 'init')
-
-          if (res.join_type == 'residential') {
-            if (res.sub_name) {
-              self.loadLegal('level1', res, res.sub_name, 'init')
-              ticket['subdivision'] = res.sub_name
-            }
-            if (res.sub_unit) {
-              self.loadLegal('level2', res, res.sub_unit, 'init')
-              ticket['unit'] = res.sub_unit
-            }
-            if (res.sub_block) {
-              self.loadLegal('level3', res, res.sub_block, 'init')
-              ticket['block'] = res.sub_block
-            }
-          } else if (res.join_type == 'rural') {
-            if (res.rural_survey) {
-              self.loadLegal('level1', res, res.rural_survey, 'init')
-              ticket['subdivision'] = res.rural_survey
-            }
-            if (res.rural_block) {
-              self.loadLegal('level2', res, res.rural_block, 'init')
-              ticket['unit'] = res.rural_block
-            }
-          } else {
-            if (res.plss_meridian) {
-              self.loadLegal('level1', res, res.plss_meridian, 'init')
-              ticket['subdivision'] = res.plss_meridian
-            }
-            if (res.plss_t_r) {
-              self.loadLegal('level2', res, res.plss_t_r, 'init')
-              ticket['unit'] = res.plss_t_r
-            }
-          }
-        }
-
         console.log(ticket)
         self.setState({ticket});
       })
-    } else if (ticketId != 'new' || !ticketId.includes('projectno-')) {
-      api.call('api/ticket/' + ticketId + "/", {}, function(res){
-        if (res.join_type) {
-          self.getCounty(res.join_type)
-
-          if (res.join_type == 'residential') {
-            self.loadLegal('county', res, res.county, 'init')
-            self.loadLegal('level1', res, res.sub_name, 'init')
-            self.loadLegal('level2', res, res.sub_unit, 'init')
-            self.loadLegal('level3', res, res.sub_block, 'init')
-          } else if (res.join_type == 'rural') {
-            self.loadLegal('county', res, res.county, 'init')
-            self.loadLegal('level1', res, res.rural_survey, 'init')
-            self.loadLegal('level2', res, res.rural_block, 'init')
-          } else {
-            self.loadLegal('county', res, res.county, 'init')
-            self.loadLegal('level1', res, res.plss_meridian, 'init')
-            self.loadLegal('level2', res, res.plss_t_r, 'init')
-          }
-        }
-        self.setState({ticket: res});
-      })
-    }
+    } 
 
     var elements = document.getElementsByClassName("MuiInput-input");
+
     for (var i = 0, len = elements.length; i < len; i++) {
       elements[i].autocomplete = "off"
       elements[i].autocorrect = "off"
       elements[i]["aria-autocomplete"] = "off"
     }
+
     document.addEventListener('mouseup', (e) => {
       if (self.wrapperRef && !self.wrapperRef.contains(e.target)) {
         if (self.state.select == "project") {

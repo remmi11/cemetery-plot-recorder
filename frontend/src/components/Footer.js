@@ -68,7 +68,7 @@ class Footer extends Component {
           <Grid container item xs={12} md={6} justify="flex-end">
             <List>
               <ListItem>
-                <ListItemText primary={`v0.1 - Cemetery Plot Recorder`} />
+                <ListItemText primary={`v0.2 - Cemetery Plot Recorder`} />
               </ListItem>
             </List>
           </Grid>

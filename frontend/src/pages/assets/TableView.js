@@ -369,31 +369,11 @@ class AssetATableView extends Component {
 
     this.itemLoad = false;
 
-    this.join_types = {
-      'county': {
-        'plss': 'meridian',
-        'residential': 'subdivision',
-        'rural': 'survey'
-      },
-      'level1': {
-        'plss': 'town_range',
-        'residential': 'unit',
-        'rural': 'block'
-      },
-      'level2': {
-        'plss': 'section',
-        'residential': 'subblock',
-        'rural': 'rural_section'
-      },
-      'level3': {
-        'residential': 'lot'
-      },
-    }
     this.subFilter = {}
   }
 
   componentDidMount() {
-    let { lAssets, filter } = this.props;
+    let { lAssets, filter, total } = this.props;
     const self = this;
 
     this.subFilter = {}
@@ -406,26 +386,6 @@ class AssetATableView extends Component {
 
     this.updateData(lAssets);
 
-    if (filter.join_type) {
-      self.getCounty(filter.join_type)
-
-      if (filter.join_type == 'residential') {
-        self.loadLegal('county', filter, filter.county, 'init')
-        self.loadLegal('level1', filter, filter.sub_name, 'init')
-        self.loadLegal('level2', filter, filter.sub_unit, 'init')
-        self.loadLegal('level3', filter, filter.sub_block, 'init')
-      } else if (filter.join_type == 'rural') {
-        console.log(filter)
-        self.loadLegal('county', filter, filter.county, 'init')
-        self.loadLegal('level1', filter, filter.rural_survey, 'init')
-        self.loadLegal('level2', filter, filter.rural_block, 'init')
-      } else if (filter.join_type == 'plss') {
-        self.loadLegal('county', filter, filter.county, 'init')
-        self.loadLegal('level1', filter, filter.plss_meridian, 'init')
-        self.loadLegal('level2', filter, filter.plss_t_r, 'init')
-      }
-    }
-
     let isFilered = false;
     let filterBubbles = {}
     Object.keys(filter).map(key => {
@@ -436,6 +396,7 @@ class AssetATableView extends Component {
       }
     })
 
+    this.setState({loader: true});
     this.setState({filter, filterIcon: isFilered, filterBubbles});
     storejs.set('assetPrePage', 'table');
   }
@@ -492,10 +453,19 @@ class AssetATableView extends Component {
     if (assets && assets.features) {
       assets.features.forEach(asset => {
         let properties = asset.properties;
+
         // properties.updated_at = new Date(properties.updated_at).toLocaleDateString();
         if (asset.geometry) {
           properties.geom = <GeomIcon className={`${properties.join_type}`}></GeomIcon>
         }
+        if (properties.cemetery_plot) {
+          properties.first_name = properties.cemetery_plot.first_name;
+          properties.middle_name = properties.cemetery_plot.middle_name;
+          properties.last_name = properties.cemetery_plot.last_name;
+          properties.suffix = properties.cemetery_plot.suffix;
+          properties.maiden_name = properties.cemetery_plot.maiden_name;
+        }
+
         temp.push(properties);
       })
     }
@@ -649,121 +619,6 @@ class AssetATableView extends Component {
     } else {
       filter[e.target.name] = e.target.value;
       this.setState({filter})
-    }
-  }
-
-  loadLegal(type, e, value, init) {
-    let { filter } = this.state;
-
-    if (init) {
-      filter = e;
-    }
-
-    let token = storejs.get('token', null)
-    let api = new ApiInterface(token.access);
-    let payload = {
-      join_type: filter.join_type
-    }
-    let url = "api/ajax_load_data/"
-    const self = this;
-
-    if (type == 'join_type') {
-      let join_type = 
-      this.getCounty(e.target.value)
-
-      filter.county = ""
-      filter.rural_survey = ""
-      filter.rural_block = ""
-      filter.rural_section = ""
-      filter.plss_meridian = ""
-      filter.plss_t_r = ""
-      filter.plss_section = ""
-      filter.sub_name = ""
-      filter.sub_unit = ""
-      filter.sub_block = ""
-      filter.sub_lot = ""
-      this.joinTypeSelection = {}
-
-      if (!init) {
-        filter[e.target.name] = e.target.value;
-        this.setState({filter: filter})
-      }
-      return;
-    } else if (type == 'county') {
-      if (!init) {
-        filter.rural_survey = ""
-        filter.rural_block = ""
-        filter.rural_section = ""
-        filter.plss_meridian = ""
-        filter.plss_t_r = ""
-        filter.plss_section = ""
-        filter.sub_name = ""
-        filter.sub_unit = ""
-        filter.sub_block = ""
-        filter.sub_lot = ""
-      }
-
-      payload['county'] = init ? value : e.target.value
-      payload['type'] = this.join_types[type][filter.join_type]
-      this.joinTypeSelection = {}
-      api.create(url, payload, function(res){
-        self.setState({level1: res})
-      })
-    } else if (type == 'level1') {
-      if (!init) {
-        filter.rural_block = ""
-        filter.rural_section = ""
-        filter.plss_t_r = ""
-        filter.plss_section = ""
-        filter.sub_unit = ""
-        filter.sub_block = ""
-        filter.sub_lot = ""
-      }
-
-      payload['county'] = filter.county
-      payload['level1'] = init ? value : e.target.value
-      payload['type'] = this.join_types[type][filter.join_type]
-      this.joinTypeSelection['level1'] = init ? value : e.target.value
-
-      api.create(url, payload, function(res){
-        self.setState({level2: res})
-      })
-    } else if (type == 'level2') {
-      if (!init) {
-        filter.rural_section = ""
-        filter.plss_section = ""
-        filter.sub_block = ""
-        filter.sub_lot = ""
-      }
-      payload['county'] = filter.county
-      payload['level1'] = this.joinTypeSelection['level1']
-      payload['level2'] = init ? value : e.target.value
-      this.joinTypeSelection['level2'] = init ? value : e.target.value
-      payload['type'] = this.join_types[type][filter.join_type]
-      api.create(url, payload, function(res){
-        self.setState({level3: res})
-      })
-    } else if (type == 'level3') {
-      if (!init) {
-        filter.sub_lot = ""
-      }
-      payload['county'] = filter.county
-      payload['level1'] = this.joinTypeSelection['level1']
-      payload['level2'] = this.joinTypeSelection['level2']
-      payload['level3'] = init ? value : e.target.value
-      this.joinTypeSelection['level3'] = init ? value : e.target.value
-      payload['type'] = this.join_types[type][filter.join_type]
-
-      if (payload['type']) {
-        api.create(url, payload, function(res){
-          self.setState({level4: res})
-        })
-      }
-    }
-
-    if (!init) {
-      filter[e.target.name] = e.target.value;
-      this.setState({filter: filter})
     }
   }
 

@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from django.db.models import Q, Sum, Count
+from django.db.models import Q, Sum, Count, Prefetch
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.http import Http404
@@ -123,10 +123,6 @@ class AssetGeoJson(APIView):
 		st_index = (page - 1) * 50
 		ed_index = page * 50
 
-		isFilter = True
-		if condition_a:
-			isFilter = True
-
 		if request.GET.get('bound') and request.GET.get('gf') == None:
 			poly = Polygon.from_bbox(tuple(request.GET.get('bound').split(',')))
 			if is_mapped:
@@ -141,20 +137,38 @@ class AssetGeoJson(APIView):
 				Q(unit__icontains = global_key) |
 				Q(block__icontains = global_key) |
 				Q(lot__icontains = global_key) |
-				Q(plot__icontains = global_key))
-				# |
-				# Q(first_name__icontains = global_key) |
-				# Q(last_name__icontains = global_key) |
-				# Q(suffix__icontains = global_key))
+				Q(plot__icontains = global_key) |
+				Q(cemetery_plot__first_name__icontains = global_key) |
+				Q(cemetery_plot__middle_name__icontains = global_key) |
+				Q(cemetery_plot__last_name__icontains = global_key) |
+				Q(cemetery_plot__suffix__icontains = global_key) |
+				Q(cemetery_plot__maiden_name__icontains = global_key))
 
 			condition_a = condition_a & temp
 
-		condition_a = condition_a & (Q(county__icontains=request.GET.get('county'))) if request.GET.get('county') else condition_a
-		condition_a = condition_a & (Q(addition__icontains=request.GET.get('addition'))) if request.GET.get('addition') else condition_a
-		condition_a = condition_a & (Q(unit__icontains=request.GET.get('unit'))) if request.GET.get('unit') else condition_a
-		condition_a = condition_a & (Q(block__icontains=request.GET.get('block'))) if request.GET.get('block') else condition_a
-		condition_a = condition_a & (Q(lot__icontains=request.GET.get('lot'))) if request.GET.get('lot') else condition_a
-		condition_a = condition_a & (Q(plot__icontains=request.GET.get('plot'))) if request.GET.get('plot') else condition_a
+		if request.GET.get('first_name'):
+			condition_a = condition_a & (Q(cemetery_plot__first_name__icontains=request.GET.get('first_name'))) 
+		if request.GET.get('middle_name'):
+			condition_a = condition_a & (Q(cemetery_plot__middle_name__icontains=request.GET.get('middle_name'))) 
+		if request.GET.get('last_name'):
+			condition_a = condition_a & (Q(cemetery_plot__last_name__icontains=request.GET.get('last_name'))) 
+		if request.GET.get('suffix'):
+			condition_a = condition_a & (Q(cemetery_plot__suffix__icontains=request.GET.get('suffix'))) 
+		if request.GET.get('maiden_name'):
+			condition_a = condition_a & (Q(cemetery_plot__maiden_name__icontains=request.GET.get('maiden_name'))) 
+
+		if request.GET.get('county'):
+			condition_a = condition_a & (Q(county__icontains=request.GET.get('county'))) 
+		if request.GET.get('addition'):
+			condition_a = condition_a & (Q(addition__icontains=request.GET.get('addition')))
+		if request.GET.get('unit'):
+			condition_a = condition_a & (Q(unit__icontains=request.GET.get('unit')))
+		if request.GET.get('block'):
+			condition_a = condition_a & (Q(block__icontains=request.GET.get('block')))
+		if request.GET.get('lot'):
+			condition_a = condition_a & (Q(lot__icontains=request.GET.get('lot')))
+		if request.GET.get('plot'):
+			condition_a = condition_a & (Q(plot__icontains=request.GET.get('plot')))
 
 		assets_all = MasterGeom.objects.filter(condition_a)
 		assets = assets_all.order_by('-id')[st_index: ed_index]
@@ -164,19 +178,20 @@ class AssetGeoJson(APIView):
 		data = serialize('geojson', assets, geometry_field='geom')
 		data = json.loads(data)
 
-		# print("==========", total, condition_a, isFilter)
+		for feat in data['features']:
+			if feat['properties']['cemetery_plot']:
+				cp = CemeteryPlot.objects.get(pk=feat['properties']['cemetery_plot'])
+				feat['properties']['cemetery_plot'] = CemeteryPlotSerializer(cp).data
+
+		# print("Total:", total, condition_a)
 
 		bbox = None
 		with connection.cursor() as cursor:
-			print("inside cursor...")
-			# if condition_a and isFilter:
-			if isFilter:
-				search_field = assets_all.query
-				search_field = str(search_field).split("WHERE")[1].strip()
-				search_field = search_field.replace("LIKE UPPER(", "LIKE UPPER('").replace("(%", "('%").replace("%)", "%')")
+			assets_all_ids = list(assets_all.values_list('id', flat=True))
 
-				# print (search_field)
-				sql = "SELECT min(ST_XMin(geom)) as l, min(ST_YMin(geom)) as b, max(ST_XMax(geom)) as r, max(ST_YMax(geom)) as t from master_geom where %s" % search_field
+			if len(assets_all_ids):
+				sql = "SELECT min(ST_XMin(geom)) as l, min(ST_YMin(geom)) as b, max(ST_XMax(geom)) as r, max(ST_YMax(geom)) as t from master_geom where id IN %s" % assets_all_ids
+				sql = sql.replace('[', '(').replace(']', ')')
 
 				cursor.execute(sql)
 				res = cursor.fetchone()
@@ -213,7 +228,8 @@ class getVectorTile(APIView):
 				raise Http404()
 		return HttpResponse(tile, content_type="application/x-protobuf")
 
-class getAsset(APIView):
+class getAssetsFromPoint(APIView):
+	# get assets from location
 	permission_classes = [IsAuthenticated, ]
 	def get(self, request):
 		condition_a = ~Q(geom=None)
@@ -223,9 +239,11 @@ class getAsset(APIView):
 		condition_a = condition_a & Q(geom__distance_lte=(pnt, 0.25))
 		assets = MasterGeom.objects.filter(condition_a)
 
-		print("assets found =>", assets.count(), list(assets), serialize('json', list(assets)))
+		print("assets found =>", assets.count())
+		
+		serializer = MasterGeomSerializer(assets, many=True)
 
-		return HttpResponse(serialize('json', list(assets)), content_type="json")
+		return Response(serializer.data)
 
 # function to generate csv file
 class AssetCSVDownload(APIView):
@@ -263,7 +281,7 @@ class AssetCSVDownload(APIView):
 			writer = csv.writer(fp)
 			writer.writerow(['ID', 'OGC_FID', 'First Name', 'Last Name', 'Middle Name', 'Suffix', 'Maiden Name', 'County', 'Addition', 'Unit', 'Block', 'Lot', 'Plot'])
 			for asset in assets:
-				cp = CemeteryPlot.objects.filter(ogc_fid=asset.ogc_fid).first()
+				cp = asset.cemetery_plot
 				if not cp:
 					cp = CemeteryPlot()
 				data = [asset.id, asset.ogc_fid, cp.first_name, cp.last_name, cp.middle_name, cp.suffix, cp.maiden_name, asset.county, asset.addition, asset.unit, asset.block, asset.lot, asset.plot]
@@ -278,71 +296,52 @@ class AssetCSVDownload(APIView):
 
 		return response
 
-# api to get/update/delete/duplicate a assetA
+# api to get/update an asset/plot
 class CemeteryPlotDetail(APIView):
 	permission_classes = []
 
 	def get_object(self, pk):
 		try:
-			print("inside get_object...")
 			return MasterGeom.objects.get(pk=pk)
 		except:
 			raise Http404
 
 	def get(self, request, pk, format=None):
 		try:
-			print("inside get...")
 			asset = self.get_object(pk)
-			cemetery_plot = CemeteryPlot.objects.filter(ogc_fid=asset.ogc_fid).first()
-			if not cemetery_plot:
-				cemetery_plot = CemeteryPlot()
-				cemetery_plot.ogc_fid = asset.ogc_fid
-				cemetery_plot.county = asset.county
-				cemetery_plot.addition = asset.addition
-				cemetery_plot.unit = asset.unit
-				cemetery_plot.block = asset.block
-				cemetery_plot.lot = asset.lot
-				cemetery_plot.plot = cemetery_plot.plot
-				cemetery_plot.geom = asset.geom
-				cemetery_plot.save()
+			cemetery_plot = asset.cemetery_plot
 
-			cemetery_plot.id = asset.id
-			serializer = CemeteryPlotSerializer(cemetery_plot)
+			# if this asset does not have 
+			if not cemetery_plot:
+				cemetery_plot = CemeteryPlot(first_name='', last_name='', middle_name='', suffix='', maiden_name='')
+				cemetery_plot.author = request.user
+				cemetery_plot.save()
+				asset.cemetery_plot = cemetery_plot
+				asset.save()
+
+			serializer = MasterGeomSerializer(asset)
+
 			return Response(serializer.data)
 		except:
 			raise Http404
 
 	def put(self, request, pk, format=None):
 		asset = self.get_object(pk)
-		cemetery_plot = CemeteryPlot.objects.filter(ogc_fid=asset.ogc_fid).first()
+		cemetery_plot = asset.cemetery_plot
 		
-		serializer = CemeteryPlotSerializer(cemetery_plot, data=request.data)
+		cp_serializer = CemeteryPlotSerializer(cemetery_plot, data=request.data)
 
-		if serializer.is_valid():
-			serializer.save(author=self.request.user)
-			return Response(serializer.data)
+		if cp_serializer.is_valid():
+			cp_serializer.save(author=self.request.user)
+			return Response(cp_serializer.data)
 		
-		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+		return Response(cp_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 	# def delete(self, request, pk, format=None):
 	# 	asset = self.get_object(pk)
 	# 	asset.delete()
 
 	# 	return Response({"pk": pk})
-
-# class CemeteryPlotCreate(generics.ListCreateAPIView):
-# 	queryset = CemeteryPlot.objects.all()
-# 	serializer_class = CemeteryPlotSerializer
-# 	permission_classes = []
-
-# 	def get_queryset(self):
-# 		pass
-
-# 	def perform_create(self, serializer):
-# 		print("====== create ========")
-# 		geom = None
-# 		serializer.save(geom=geom, author=self.request.user)
-
 
 
 class LegalData(APIView):
@@ -403,50 +402,6 @@ class LoadCounties(APIView):
 			result_set.append(county.county)
 		return HttpResponse(json.dumps(result_set), content_type='application/json')
 
-class AutoProjectNo(APIView):
-	permission_classes = []
-
-	def post(self, request, format=None):
-		res = {}
-		collection = request.data.get('collection', '').lower()
-		with connection.cursor() as cursor:
-			if collection in ['furman land surveyors, inc.', 'gdi, inc. - amarillo', 'gdi, inc. - canadian']:
-				sql = "SELECT MAX(CAST(substring(project_no, 4) AS INT)) FROM form WHERE lower(collection) = '%s' and substring(project_no, 4) ~ E'^[0-9]+$'" % (collection)
-			else:
-				sql = "SELECT MAX(CAST(substring(project_no, 3) AS INT)) FROM form WHERE lower(collection) = '%s' and substring(project_no, 3) ~ E'^[0-9]+$'" % (collection)
-
-			cursor.execute(sql)
-			res = {'pid': cursor.fetchone()[0]}
-		return HttpResponse(json.dumps(res), content_type='application/json')
-
-class ClientData(APIView):
-	permission_classes = []
-
-	def get(self, request, format=None):
-		try:
-			data = []
-
-			if request.GET.get('type') == 'clients':
-				temp = CemeteryPlot.objects.all().distinct('client')
-				data = [tp.client for tp in temp if tp.client != None]
-			if request.GET.get('type') == 'certified_by':
-				temp = CemeteryPlot.objects.all().distinct('certified_by')
-				data = [tp.certified_by for tp in temp if tp.certified_by != None]
-			if request.GET.get('type') == 'map_no':
-				temp = CemeteryPlot.objects.all().distinct('map_no')
-				data = [tp.map_no for tp in temp if tp.map_no != None and tp.map_no != ""]
-			if request.GET.get('type') == 'project_no':
-				temp = CemeteryPlot.objects.filter(project_no__icontains=request.GET.get('project_no')).distinct('project_no')
-				data = [tp.project_no for tp in temp if tp.project_no != None and tp.project_no != ""]
-			if request.GET.get('type') == 'lenders':
-				temp = CemeteryPlot.objects.all().distinct('lender')
-				data = [tp.lender for tp in temp if tp.lender != None]
-			return HttpResponse(json.dumps(data), content_type='application/json')
-
-		except:
-			return HttpResponse(json.dumps(data), content_type='application/json')
-			# raise Http404
-
 def sign_url(input_url=None, secret=None):
 	if not input_url or not secret:
 		raise Exception("Both input_url and secret are required")
@@ -483,17 +438,17 @@ class StreetView(APIView):
 
 		return HttpResponse(json.dumps({'url': streetview}), content_type='application/json')
 
-class TicketCount(APIView):
-	permission_classes = [IsAuthenticated, ]
+# class TicketCount(APIView):
+# 	permission_classes = [IsAuthenticated, ]
 
-	def get(self, request, format=None):
-		print (request.GET.get('count'))
-		openCount = 0
+# 	def get(self, request, format=None):
+# 		print (request.GET.get('count'))
+# 		openCount = 0
 		
-		if request.GET.get('count'):
-			condition = Q()
-			globalf = Q()
-		return Response({"count": openCount})
+# 		if request.GET.get('count'):
+# 			condition = Q()
+# 			globalf = Q()
+# 		return Response({"count": openCount})
 
 
 # api to get and update a user
@@ -612,32 +567,6 @@ class getLocation(APIView):
 			geom = []
 
 		return Response({'location': geom})
-
-
-class getLegal(APIView):
-	permission_classes = [IsAuthenticated, ]
-
-	def get(self, request):
-		lng = request.GET.get('lng')
-		lat = request.GET.get('lat')
-		res = None
-		with connection.cursor() as cursor:
-			sql = '''SELECT a.id, a.account_nu, a.join_type, a.county, a.subdivisio, a.unit_numbe, a.block_numb, a.lot_number, ST_AsText(a.geom) FROM master_geom a WHERE ST_INTERSECTS(ST_BUFFER(ST_TRANSFORM(ST_SetSRID(ST_Point(%s, %s),4326), 2275), 20), ST_TRANSFORM(a.geom, 2275)) AND a.join_type = \'residential\'''' % (lng, lat)
-
-			print (sql)
-
-			cursor.execute(sql)
-			res = cursor.fetchone()
-			return Response({'data': res})
-		return Response({'data': None})
-
-class TicketTotalCount(APIView):
-	permission_classes = [IsAuthenticated, ]
-
-	def get(self, request, format=None):
-		openCount = Ticket.objects.all().count()
-
-		return Response({"count": openCount})
 
 class KMZFiles(APIView):
 	permission_classes = [IsAuthenticated, ]

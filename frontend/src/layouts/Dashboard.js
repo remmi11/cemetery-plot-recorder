@@ -87,10 +87,9 @@ const Dashboard = ({children, routes, width}) => {
     // Good!
     let token = storejs.get('token', null)
     let api = new ApiInterface(token.access);
-    const self = this;
-    api.call('api/ticket_count/', {}, function(res){
-      setCount(res.count)
-    })
+    // api.call('api/ticket_count/', {}, function(res){
+    //   setCount(res.count)
+    // })
   }, []);
 
   return (

@@ -3,12 +3,8 @@ import React from "react";
 import async from "../components/Async";
 
 import {
-  Sliders,
-  User,
   Users,
   MapPin,
-  FileText,
-  PieChart,
   CreditCard,
   Settings
 } from "react-feather";

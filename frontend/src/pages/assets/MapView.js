@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import styled, { withTheme } from "styled-components";
 import { connect } from "react-redux";
-import { Source, GeoJSONLayer } from "react-mapbox-gl";
+import { Source } from "react-mapbox-gl";
 import Geocoder from 'react-mapbox-gl-geocoder'
 
 import storejs from 'store';
@@ -9,20 +9,15 @@ import storejs from 'store';
 import {
   Grid,
   Button as MuiButton,
-  IconButton as MuiIconButton,
   FormControlLabel,
   FormControl,
   FormGroup,
   MenuItem,
-  InputLabel,
   Select as MuiSelect,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   TextField,
-  Radio,
-  RadioGroup,
   Checkbox,
   DialogTitle
 } from "@material-ui/core";
@@ -396,7 +391,6 @@ class MapView extends Component {
 
   // init function
   componentDidMount() {
-    console.log(">>>>> component did mount...")
     let {option} = this.state;
     let { filter, globalFilter } = this.props;
 
@@ -448,12 +442,11 @@ class MapView extends Component {
 
   componentDidUpdate(nextProps) {
     let {option} = this.state;
-    let {lAssets, createDialog, filter, globalFilter, bbox} = this.props, coordinates = [];
+    let {lAssets, createDialog, filter, globalFilter, bbox} = this.props;
+    let coordinates = [];
     let isFilered = false;
     let filterBubbles = {};
     let {isFirstLoad} = this.state;
-
-    console.log("component did update....", isFirstLoad, lAssets.features?.length, nextProps.lAssets.features?.length)
 
     // if (nextProps.filter != filter || nextProps.globalFilter != globalFilter) {
     //   let url = "";
@@ -490,17 +483,18 @@ class MapView extends Component {
   onSelected = (viewport, item) => {
     let {filter, globalFilter} = this.props;
     this.setState({viewport});
-    console.log('Selected: ', item)
+    // console.log('Selected: ', item)
 
     let center = item.center
     let bbox = [center[0] - 0.001, center[1] - 0.001, center[0] + 0.001, center[1] + 0.001]
     storejs.set('bounds', bbox)
-    console.log("Bound for click ->", bbox)
+    // console.log("Bound for click ->", bbox)
+    
     this.setState({bbox: bbox})
 
-    filter['mapped'] = true
-    this.props.getDataFromServer(filter, globalFilter, 1, null, null, false)
-    this.props.onMapped(true)
+    filter['mapped'] = true;
+    this.props.getDataFromServer(filter, globalFilter, 1, null, null, false);
+    this.props.onMapped(true);
   }
 
   handleClickOutside(event) {
@@ -757,35 +751,43 @@ class MapView extends Component {
   onClickMap(map, e) {
     let token = storejs.get('token', null)
     let api = new ApiInterface(token.access);
-    let { filter, globalFilter } = this.props;
+    let { filter, globalFilter, showAssetDialog } = this.props;
     const self = this;
 
-    delete filter['page']
+    delete filter['page'];
 
     filter['lat'] = e.lngLat.lat;
     filter['lng'] = e.lngLat.lng;
-    console.log("Click pos =>", filter)
+    
+    console.log("Map click =>", filter);
 
-    api.call('api/get-asseta/', filter, function(res){
+    api.call('api/get-assets/', filter, function(res){
       let lat = e.lngLat.lat, lng = e.lngLat.lng;
       if (res.length > 0) {
-        console.log("map click -> data loaded -> count =", res.length, " |", res)
-        if (res[0].fields.geom) {
-          let geom = res[0].fields.geom.split("((")[1].split("))")[0].split(',')[0].split(' ')
+        if (res[0].geom) {
+          let geom = res[0].geom.split("((")[1].split("))")[0].split(',')[0].split(' ')
           lat = parseFloat(geom[1]);
           lng = parseFloat(geom[0]);
-        }
-        console.log("lat, lng ->", lat, lng);
-        let bbox = [lng - 0.00003, lat - 0.000015, lng + 0.00003, lat + 0.000015];
-        console.log('bound after click =>', bbox);
-        storejs.set('bounds', bbox)
-        self.setState({bbox: bbox})
 
-        filter['mapped'] = true;
-        self.props.setAssets([]);
-        self.props.getDataFromServer(filter, globalFilter, 1, null, null, false)
-        self.props.onMapped(true)
-        self.props.onToggle('table')
+          // this.setState({assetDetail: true, selectedAsset: res[0].id});
+          showAssetDialog(res[0].id);
+
+          // console.log("map click -> data loaded -> count =", res.length, " |", res)
+          console.log("lat, lng:", lat, lng, res);
+
+        }
+
+        // let bbox = [lng - 0.00003, lat - 0.000015, lng + 0.00003, lat + 0.000015];
+        // // let bbox = [lng - 0.00005, lat, lng + 0.00005, lat];
+        // console.log('bound after click =>', bbox);
+        // storejs.set('bounds', bbox);
+        // self.setState({bbox: bbox});
+
+        // filter['mapped'] = true;
+        // self.props.setAssets([]);
+        // self.props.getDataFromServer(filter, globalFilter, 1, null, null, false);
+        // self.props.onMapped(true);
+        // self.props.onToggle('table');
       } else {
         // window.location.href="/assets/detail/" + res[0].pk;
         // self.setState({selectedAsset: res[0].pk, assetDetail: true});
@@ -804,12 +806,12 @@ class MapView extends Component {
     let {filter, globalFilter} = this.props;
     let bounds = map.getBounds();
     bounds = [bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat];
-    console.log("zoom event...", bounds)
+    // console.log("zoom event...", bounds);
 
-    storejs.set('bounds', bounds)
+    storejs.set('bounds', bounds);
 
-    filter['mapped'] = true
-    this.props.getDataFromServer(filter, globalFilter, 1, null, null, false)
+    filter['mapped'] = true;
+    this.props.getDataFromServer(filter, globalFilter, 1, null, null, false);
     this.props.onMapped(true)
   }
 

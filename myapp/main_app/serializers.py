@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import *
 
+
 class CustomUserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = CustomUser
@@ -9,12 +10,12 @@ class CustomUserSerializer(serializers.ModelSerializer):
 class CemeteryPlotSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = CemeteryPlot
-		fields = ('id', 'ogc_fid', 'first_name', 'middle_name', 'last_name', 'suffix', 'maiden_name',
-					'is_veteran', 'county', 'addition', 'unit', 'block', 'lot', 'plot', 'geom')
+		fields = ('id', 'first_name', 'middle_name', 'last_name', 'suffix', 'maiden_name', 'is_veteran', 'created_at', 'updated_at')
 
-	def to_representation(self, instance):
-		representation = super(CemeteryPlotSerializer, self).to_representation(instance)
-		# representation['meridian'] = ""
-		# if instance.plss_meridian:
-		# 	representation['meridian'] = Meridian.objects.get(code=instance.plss_meridian).title
-		return representation
+class MasterGeomSerializer(serializers.ModelSerializer):
+	cemetery_plot = CemeteryPlotSerializer()
+
+	class Meta:
+		model = MasterGeom
+		fields = ('id', 'ogc_fid', 'shape_leng', 'shape_area', 'county', 'addition', 'unit', 'block', 'lot', 'cemetery_plot', 'geom')
+
