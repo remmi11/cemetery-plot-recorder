@@ -483,7 +483,7 @@ class AssetDetail extends Component {
 
     return (
       <React.Fragment>
-        <Helmet title="Assets" />
+        <Helmet title="Plots" />
 
         <EditForm ref="form" onSubmit={(e) => this.props.submitForm()} className="edit-form" onError={errors => console.log(errors)}>
           <Typography variant="h3" gutterBottom display="inline">

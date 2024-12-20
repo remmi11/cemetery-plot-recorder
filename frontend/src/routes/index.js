@@ -56,7 +56,7 @@ const authRoutes = {
 
 const assetsRoutes = {
   id: "Assets",
-  path: "/assets",
+  path: "/plots",
   icon: <MapPin />,
   component: Assets,
   children: null

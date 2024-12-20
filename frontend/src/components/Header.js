@@ -108,7 +108,7 @@ class Header extends Component {
   render() {
     let title = "";
     if (window.location.href.includes('assets')) {
-      title = "Assets";
+      title = "Plots";
     } else if (window.location.href.includes('dashboard')) {
       title = "Dashboard";
     } else if (window.location.href.includes('inspections')) {

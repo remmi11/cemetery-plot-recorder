@@ -383,7 +383,7 @@ class Assets extends Component {
 
     return (
       <React.Fragment>
-        <Helmet title="Assets" />
+        <Helmet title="Plots" />
         <Grid container>
           <Grid item xs={12}>
             <Card>

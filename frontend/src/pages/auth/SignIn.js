@@ -72,7 +72,7 @@ class SignIn extends Component {
           storejs.set('user', user)
           storejs.set('bounds',[-108.17760745441063,33.234930914675445,-94.99167812063787,36.67397646539162])
 
-          window.location.href = '/assets';
+          window.location.href = '/plots';
         });
       } else {
         this.setState({error: "Username or password is incorrect."})
@@ -89,7 +89,7 @@ class SignIn extends Component {
     if (token != null) {
       const authApi = new ApiInterface(token.access);
       authApi.get_auth((user) => {
-        window.location.href = '/assets';
+        window.location.href = '/plots';
       });
     }
   }
