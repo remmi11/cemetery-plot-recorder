@@ -616,9 +616,6 @@ class AssetDetail extends Component {
                   onClick={() => { this.submitForm(); }}>
                   Save
                 </Button>
-                <Button mr={2} color="primary" variant="outlined" title="Clear">
-                  Clear
-                </Button>
                 <Button mr={2} color="primary" variant="outlined" title="Save"
                   onClick={() => this.props.closeAssetDetail()}>
                   Cancel
