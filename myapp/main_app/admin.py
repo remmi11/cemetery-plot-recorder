@@ -27,6 +27,9 @@ class CustomUserAdmin(UserAdmin):
 		})
 	)
 
+class CemeteryPlotFormAdmin(admin.ModelAdmin):
+	list_display = ('id', 'first_name', 'middle_name', 'last_name')
+
 class MasterGeomAdmin(admin.ModelAdmin):
 	list_display = ('id', 'ogc_fid', 'shape_leng', 'shape_area', 'county', 'addition', 
                     'unit', 'block', 'lot', 'plot', 'geom')	
@@ -34,3 +37,4 @@ class MasterGeomAdmin(admin.ModelAdmin):
 
 admin.site.register(get_user_model(), CustomUserAdmin)
 admin.site.register(MasterGeom, MasterGeomAdmin)
+admin.site.register(CemeteryPlotForm, CemeteryPlotFormAdmin)
