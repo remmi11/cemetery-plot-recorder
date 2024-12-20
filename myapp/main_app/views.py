@@ -278,21 +278,23 @@ class AssetCSVDownload(APIView):
 
 		DIR_PATH = '.'
 
-		file_path = "%s/upload/assets_%s.csv" % (DIR_PATH, file_name)
+		file_path = "%s/upload/plots_%s.csv" % (DIR_PATH, file_name)
 		with open(file_path, "w") as fp:
 			writer = csv.writer(fp)
 			writer.writerow(['ID', 'OGC_FID', 'First Name', 'Last Name', 'Middle Name', 'Suffix', 'Maiden Name', 'County', 'Addition', 'Unit', 'Block', 'Lot', 'Plot'])
 			for asset in assets:
-				cp = asset.cemetery_plot
-				if not cp:
+				cp = CemeteryPlotForm.objects.filter(geom=asset)
+				if not cp.exists():
 					cp = CemeteryPlotForm()
+				else:
+					cp = cp.get()
 				data = [asset.id, asset.ogc_fid, cp.first_name, cp.last_name, cp.middle_name, cp.suffix, cp.maiden_name, asset.county, asset.addition, asset.unit, asset.block, asset.lot, asset.plot]
 				writer.writerow(data)
 			fp.close()
 
 		fp = open(file_path, 'r')
 		response = HttpResponse(fp, content_type='text/csv')
-		response['Content-Disposition'] = 'attachment; filename=assets.csv'
+		response['Content-Disposition'] = 'attachment; filename=plots.csv'
 
 		os.remove(file_path)
 
