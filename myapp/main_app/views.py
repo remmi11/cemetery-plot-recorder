@@ -138,24 +138,24 @@ class AssetGeoJson(APIView):
 				Q(block__icontains = global_key) |
 				Q(lot__icontains = global_key) |
 				Q(plot__icontains = global_key) |
-				Q(cemetery_plot__first_name__icontains = global_key) |
-				Q(cemetery_plot__middle_name__icontains = global_key) |
-				Q(cemetery_plot__last_name__icontains = global_key) |
-				Q(cemetery_plot__suffix__icontains = global_key) |
-				Q(cemetery_plot__maiden_name__icontains = global_key))
+				Q(cemetery_plot_form__first_name__icontains = global_key) |
+				Q(cemetery_plot_form__middle_name__icontains = global_key) |
+				Q(cemetery_plot_form__last_name__icontains = global_key) |
+				Q(cemetery_plot_form__suffix__icontains = global_key) |
+				Q(cemetery_plot_form__maiden_name__icontains = global_key))
 
 			condition_a = condition_a & temp
 
 		if request.GET.get('first_name'):
-			condition_a = condition_a & (Q(cemetery_plot__first_name__icontains=request.GET.get('first_name'))) 
+			condition_a = condition_a & (Q(cemetery_plot_form__first_name__icontains=request.GET.get('first_name'))) 
 		if request.GET.get('middle_name'):
-			condition_a = condition_a & (Q(cemetery_plot__middle_name__icontains=request.GET.get('middle_name'))) 
+			condition_a = condition_a & (Q(cemetery_plot_form__middle_name__icontains=request.GET.get('middle_name'))) 
 		if request.GET.get('last_name'):
-			condition_a = condition_a & (Q(cemetery_plot__last_name__icontains=request.GET.get('last_name'))) 
+			condition_a = condition_a & (Q(cemetery_plot_form__last_name__icontains=request.GET.get('last_name'))) 
 		if request.GET.get('suffix'):
-			condition_a = condition_a & (Q(cemetery_plot__suffix__icontains=request.GET.get('suffix'))) 
+			condition_a = condition_a & (Q(cemetery_plot_form__suffix__icontains=request.GET.get('suffix'))) 
 		if request.GET.get('maiden_name'):
-			condition_a = condition_a & (Q(cemetery_plot__maiden_name__icontains=request.GET.get('maiden_name'))) 
+			condition_a = condition_a & (Q(cemetery_plot_form__maiden_name__icontains=request.GET.get('maiden_name'))) 
 
 		if request.GET.get('county'):
 			condition_a = condition_a & (Q(county__icontains=request.GET.get('county'))) 
@@ -179,9 +179,11 @@ class AssetGeoJson(APIView):
 		data = json.loads(data)
 
 		for feat in data['features']:
-			if feat['properties']['cemetery_plot']:
-				cp = CemeteryPlot.objects.get(pk=feat['properties']['cemetery_plot'])
-				feat['properties']['cemetery_plot'] = CemeteryPlotSerializer(cp).data
+			feat['properties']['cemetery_plot_form'] = None
+			cp_form = CemeteryPlotForm.objects.filter(geom=feat['properties']['pk'])
+			if cp_form.exists():
+				cp_form = cp_form.get()
+				feat['properties']['cemetery_plot_form'] = CemeteryPlotFormSerializer(cp_form).data
 
 		# print("Total:", total, condition_a)
 
@@ -283,7 +285,7 @@ class AssetCSVDownload(APIView):
 			for asset in assets:
 				cp = asset.cemetery_plot
 				if not cp:
-					cp = CemeteryPlot()
+					cp = CemeteryPlotForm()
 				data = [asset.id, asset.ogc_fid, cp.first_name, cp.last_name, cp.middle_name, cp.suffix, cp.maiden_name, asset.county, asset.addition, asset.unit, asset.block, asset.lot, asset.plot]
 				writer.writerow(data)
 			fp.close()
@@ -297,7 +299,7 @@ class AssetCSVDownload(APIView):
 		return response
 
 # api to get/update an asset/plot
-class CemeteryPlotDetail(APIView):
+class CemeteryPlotFormDetail(APIView):
 	permission_classes = []
 
 	def get_object(self, pk):
@@ -309,33 +311,35 @@ class CemeteryPlotDetail(APIView):
 	def get(self, request, pk, format=None):
 		try:
 			asset = self.get_object(pk)
-			cemetery_plot = asset.cemetery_plot
+			cemetery_plot_form = CemeteryPlotForm.objects.filter(geom=asset)
 
-			# if this asset does not have 
-			if not cemetery_plot:
-				cemetery_plot = CemeteryPlot(first_name='', last_name='', middle_name='', suffix='', maiden_name='')
-				cemetery_plot.author = request.user
-				cemetery_plot.save()
-				asset.cemetery_plot = cemetery_plot
-				asset.save()
+			# if this asset does not have
+			if cemetery_plot_form.exists():
+				cemetery_plot_form = cemetery_plot_form.get()
+			else:
+				cemetery_plot_form = CemeteryPlotForm(first_name='', last_name='', middle_name='', suffix='', maiden_name='')
+				cemetery_plot_form.author = request.user
+				cemetery_plot_form.geom = asset
+				cemetery_plot_form.save()
 
 			serializer = MasterGeomSerializer(asset)
 
 			return Response(serializer.data)
-		except:
+		except Exception as ex:
+			print(ex)
 			raise Http404
 
 	def put(self, request, pk, format=None):
 		asset = self.get_object(pk)
-		cemetery_plot = asset.cemetery_plot
+		cemetery_plot_form = asset.cemetery_plot_form
 		
-		cp_serializer = CemeteryPlotSerializer(cemetery_plot, data=request.data)
+		cp_form_serializer = CemeteryPlotFormSerializer(cemetery_plot_form, data=request.data)
 
-		if cp_serializer.is_valid():
-			cp_serializer.save(author=self.request.user)
-			return Response(cp_serializer.data)
+		if cp_form_serializer.is_valid():
+			cp_form_serializer.save(author=self.request.user)
+			return Response(cp_form_serializer.data)
 		
-		return Response(cp_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+		return Response(cp_form_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 	# def delete(self, request, pk, format=None):
 	# 	asset = self.get_object(pk)
@@ -431,7 +435,7 @@ class StreetView(APIView):
 	permission_classes = []
 
 	def get(self, request, pk, format=None):
-		post = get_object_or_404(CemeteryPlot, pk=pk)
+		post = get_object_or_404(CemeteryPlotForm, pk=pk)
 		streetview = ""
 		if post.geom:
 			streetview = sign_url("https://maps.googleapis.com/maps/api/streetview?location=%s,%s&size=600x300&key=%s" % (post.geom.y, post.geom.x, GOOGLE_KEY), SECRET_KEY)
@@ -525,7 +529,7 @@ class Dashboard(APIView):
 
 		# for label in ['residential', 'rural', 'plss', 'route']:
 		# 	resultByMonth = (
-		# 		CemeteryPlot.objects
+		# 		CemeteryPlotForm.objects
 		# 			.filter(date_entered__gte=date, join_type=label)
 		# 			.values_list('date_entered__year', 'date_entered__month')
 		# 			.annotate(count=Count('id'))

@@ -6,9 +6,6 @@ import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
-import ApiInterface from '../lib/ApiInterface.js';
-import storejs from 'store';
-
 import { spacing } from "@material-ui/system";
 import {
   Hidden,
@@ -85,8 +82,8 @@ const Dashboard = ({children, routes, width}) => {
 
   useEffect(() => {
     // Good!
-    let token = storejs.get('token', null)
-    let api = new ApiInterface(token.access);
+    // let token = storejs.get('token', null)
+    // let api = new ApiInterface(token.access);
     // api.call('api/ticket_count/', {}, function(res){
     //   setCount(res.count)
     // })

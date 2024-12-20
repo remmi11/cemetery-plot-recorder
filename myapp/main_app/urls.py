@@ -19,7 +19,7 @@ urlpatterns = [
     path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
     
     path('get-assets/', views.getAssetsFromPoint.as_view(), name='get_assets'),
-    path('asset/<int:pk>/', views.CemeteryPlotDetail.as_view(), name='plot_detail'),
+    path('asset/<int:pk>/', views.CemeteryPlotFormDetail.as_view(), name='plot_detail'),
 
     # path('ticket/<int:pk>/', views.TicketDetail.as_view()),
     # path('ticket_create/', views.TicketCreate.as_view()),

@@ -361,7 +361,7 @@ class AssetDetail extends Component {
     const self = this;
 
     if (type == 'first_name' || type == 'last_name' || type == 'middle_name' || type == 'suffix' || type == 'maiden_name') {
-      asset.cemetery_plot[type] = e.target.value;
+      asset.cemetery_plot_form[type] = e.target.value;
       this.setState(asset);
     } else { 
         asset[e.target.name] = e.target.value;
@@ -378,7 +378,7 @@ class AssetDetail extends Component {
     let self = this;
     let user = storejs.get('user')
 
-    let payload = JSON.parse(JSON.stringify(asset.cemetery_plot))
+    let payload = JSON.parse(JSON.stringify(asset.cemetery_plot_form))
 
     if (assetId != 'new') {
       console.log("saving asset form...")
@@ -513,7 +513,7 @@ class AssetDetail extends Component {
                       <FormControl margin="normal" fullWidth>
                         <span style={{color: 'rgba(0, 0, 0, 0.54)', fontSize: '12px'}}>First Name</span>
                         <TextField id="first_name" name="first_name"
-                          value={asset.cemetery_plot?asset.cemetery_plot.first_name:''} label=""
+                          value={asset.cemetery_plot_form?asset.cemetery_plot_form.first_name:''} label=""
                           onChange={(e) => this.handleChange(e, 'first_name')} fullWidth />
                       </FormControl>
                     </Grid>
@@ -521,7 +521,7 @@ class AssetDetail extends Component {
                       <FormControl margin="normal" fullWidth>
                         <span style={{color: 'rgba(0, 0, 0, 0.54)', fontSize: '12px'}}>Last Name</span>
                         <TextField id="last_name" name="last_name"
-                          value={asset.cemetery_plot?asset.cemetery_plot.last_name:''} label=""
+                          value={asset.cemetery_plot_form?asset.cemetery_plot_form.last_name:''} label=""
                           onChange={(e) => this.handleChange(e, 'last_name')} fullWidth />
                       </FormControl>
                     </Grid>                  
@@ -529,7 +529,7 @@ class AssetDetail extends Component {
                       <FormControl margin="normal" fullWidth>
                         <span style={{color: 'rgba(0, 0, 0, 0.54)', fontSize: '12px'}}>Middle</span>
                         <TextField id="middle_name" name="middle_name"
-                          value={asset.cemetery_plot?asset.cemetery_plot.middle_name:''} label=""
+                          value={asset.cemetery_plot_form?asset.cemetery_plot_form.middle_name:''} label=""
                           onChange={(e) => this.handleChange(e, 'middle_name')} fullWidth />
                       </FormControl>
                     </Grid>                  
@@ -537,7 +537,7 @@ class AssetDetail extends Component {
                       <FormControl margin="normal" fullWidth>
                         <span style={{color: 'rgba(0, 0, 0, 0.54)', fontSize: '12px'}}>Suffix</span>
                         <TextField id="suffix" name="suffix"
-                          value={asset.cemetery_plot?asset.cemetery_plot.suffix:''} label=""
+                          value={asset.cemetery_plot_form?asset.cemetery_plot_form.suffix:''} label=""
                           onChange={(e) => this.handleChange(e, 'suffix')} fullWidth />
                       </FormControl>
                     </Grid>                  
@@ -545,7 +545,7 @@ class AssetDetail extends Component {
                       <FormControl margin="normal" fullWidth>
                         <span style={{color: 'rgba(0, 0, 0, 0.54)', fontSize: '12px'}}>Maiden Name</span>
                         <TextField id="maiden_name" name="maiden_name"
-                          value={asset.cemetery_plot?asset.cemetery_plot.maiden_name:''} label=""
+                          value={asset.cemetery_plot_form?asset.cemetery_plot_form.maiden_name:''} label=""
                           onChange={(e) => this.handleChange(e, 'maiden_name')} fullWidth />
                       </FormControl>
                     </Grid>                  

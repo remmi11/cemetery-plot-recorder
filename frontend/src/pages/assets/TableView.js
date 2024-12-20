@@ -457,12 +457,12 @@ class AssetATableView extends Component {
         if (asset.geometry) {
           properties.geom = <GeomIcon className={`${properties.join_type}`}></GeomIcon>
         }
-        if (properties.cemetery_plot) {
-          properties.first_name = properties.cemetery_plot.first_name;
-          properties.middle_name = properties.cemetery_plot.middle_name;
-          properties.last_name = properties.cemetery_plot.last_name;
-          properties.suffix = properties.cemetery_plot.suffix;
-          properties.maiden_name = properties.cemetery_plot.maiden_name;
+        if (properties.cemetery_plot_form) {
+          properties.first_name = properties.cemetery_plot_form.first_name;
+          properties.middle_name = properties.cemetery_plot_form.middle_name;
+          properties.last_name = properties.cemetery_plot_form.last_name;
+          properties.suffix = properties.cemetery_plot_form.suffix;
+          properties.maiden_name = properties.cemetery_plot_form.maiden_name;
         }
 
         temp.push(properties);

@@ -234,21 +234,6 @@ const GridContent = styled(Grid)`
   }
 `;
 
-const symbolLayout: MapboxGL.SymbolLayout = {
-  'text-field': '{place}',
-  'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
-  'text-offset': [0, 0.6],
-  'text-anchor': 'top'
-};
-const symbolPaint: MapboxGL.SymbolPaint = {
-  'text-color': 'green'
-};
-
-const circleLayout: MapboxGL.CircleLayout = { visibility: 'visible' };
-const circlePaint: MapboxGL.CirclePaint = {
-  'circle-color': 'blue'
-};
-
 const FilterTitle = styled(Grid)`
   padding: 6px;
   background: #292929;
