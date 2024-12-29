@@ -653,7 +653,7 @@ class AssetATableView extends Component {
             let objectUrl = window.URL.createObjectURL(blobby);
 
             link.href = objectUrl;
-            link.download = 'assets.csv';
+            link.download = 'plots.csv';
             link.click();
 
             window.URL.revokeObjectURL(objectUrl);

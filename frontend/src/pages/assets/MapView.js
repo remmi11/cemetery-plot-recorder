@@ -323,55 +323,8 @@ class MapView extends Component {
     this.loaded = false;
 
     this.layerRef = React.createRef();
-    this.handleClickOutside = this.handleClickOutside.bind(this)
+    this.handleClickOutside = this.handleClickOutside.bind(this);
 
-    this.floodsTileLayer = {
-      "type": "raster",
-      "tiles": [
-        "https://a.tiles.mapbox.com/styles/v1/wtgeographer/cjf9riogz4z8n2rmk4eawkc6o/tiles/{z}/{x}/{y}?access_token=pk.eyJ1Ijoid3RnZW9ncmFwaGVyIiwiYSI6ImNrNXk3dXh6NzAwbncza3A1eHlpY2J2bmoifQ.JRy79QqtwUTYHK7dFUYy5g",
-      ]
-    }
-    this.cityLimitsTileLayer = {
-      "type": "raster",
-      "tiles": [
-        "https://a.tiles.mapbox.com/styles/v1/wtgeographer/cjftuokfx8ime2sqpyhj88q67/tiles/{z}/{x}/{y}?access_token=pk.eyJ1Ijoid3RnZW9ncmFwaGVyIiwiYSI6ImNrNXk3dXh6NzAwbncza3A1eHlpY2J2bmoifQ.JRy79QqtwUTYHK7dFUYy5g"
-      ]
-    }
-    this.parcelsTileLayer = {
-      "type": "raster",
-      "tiles": [
-        "https://gs.furmanrecords.com:443/geoserver/gwc/service/tms/1.0.0/master_geom:parcels_4326@EPSG%3A900913@png/{z}/{x}/{y}.png",
-      ],
-      "minzoom": 12
-    }
-    this.sectionsTileLayer = {
-      "type": "raster",
-      "tiles": [
-        "https://gs.furmanrecords.com:443/geoserver/gwc/service/tms/1.0.0/master_geom%3Asections_merged_4326@EPSG%3A900913@png/{z}/{x}/{y}.png",
-      ],
-      "minzoom": 12
-    }
-
-    this.join_types = {
-      'county': {
-        'plss': 'meridian',
-        'residential': 'subdivision',
-        'rural': 'survey'
-      },
-      'level1': {
-        'plss': 'town_range',
-        'residential': 'unit',
-        'rural': 'block'
-      },
-      'level2': {
-        'plss': 'section',
-        'residential': 'subblock',
-        'rural': 'rural_section'
-      },
-      'level3': {
-        'residential': 'lot'
-      },
-    }
   }
 
   // init function
@@ -383,25 +336,6 @@ class MapView extends Component {
     let api = new ApiInterface(token.access);
     const self = this;
     let isFilered = false;
-
-    if (filter.join_type) {
-      self.getCounty(filter.join_type)
-
-      if (filter.join_type == 'residential') {
-        self.loadLegal('county', filter, filter.county, 'init')
-        self.loadLegal('level1', filter, filter.sub_name, 'init')
-        self.loadLegal('level2', filter, filter.sub_unit, 'init')
-        self.loadLegal('level3', filter, filter.sub_block, 'init')
-      } else if (filter.join_type == 'rural') {
-        self.loadLegal('county', filter, filter.county, 'init')
-        self.loadLegal('level1', filter, filter.rural_survey, 'init')
-        self.loadLegal('level2', filter, filter.rural_block, 'init')
-      } else if (filter.join_type == 'plss') {
-        self.loadLegal('county', filter, filter.county, 'init')
-        self.loadLegal('level1', filter, filter.plss_meridian, 'init')
-        self.loadLegal('level2', filter, filter.plss_t_r, 'init')
-      }
-    }
 
     let url = "";
     let filterBubbles = {};
@@ -426,33 +360,8 @@ class MapView extends Component {
   }
 
   componentDidUpdate(nextProps) {
-    let {option} = this.state;
-    let {lAssets, createDialog, filter, globalFilter, bbox} = this.props;
-    let coordinates = [];
-    let isFilered = false;
-    let filterBubbles = {};
+    let {bbox} = this.props;
     let {isFirstLoad} = this.state;
-
-    // if (nextProps.filter != filter || nextProps.globalFilter != globalFilter) {
-    //   let url = "";
-    //   Object.keys(filter).map(key => {
-    //     if (key != 'page') {
-    //       url += key + "=" + filter[key] + "&";
-    //     }
-    //     if (!['mapped', 'bound', 'global', 'page', 'bbox', 'lat', 'lng', 'gf'].includes(key) && filter[key] != '') {
-    //       isFilered = true;
-    //       filterBubbles[key] = filter[key]
-    //     }
-    //   })
-    //   if (globalFilter && globalFilter != '') {
-    //     url += "global=" + globalFilter + "&";
-    //   }
-    //   this.setState({filter, option: {...option, tiles: [this.tileUrl + url]}, filterIcon: isFilered, filterBubbles})
-    // }
-
-    // if (nextProps.lAssets != lAssets) {
-    //   this.setState({geojson: lAssets})
-    // }
 
     if (isFirstLoad && nextProps.bbox != bbox && bbox) {
       storejs.set('bounds', bbox)
@@ -548,127 +457,8 @@ class MapView extends Component {
   handleFilters(e, type) {
     let { filter } = this.state;
 
-    if (['join_type', 'county', 'level1', 'level2', 'level3'].includes(type)) {
-      this.loadLegal(type, e)
-    } else {
-      filter[e.target.name] = e.target.value;
-      this.setState({filter})
-    }
-  }
-
-  loadLegal(type, e, value, init) {
-    let { filter } = this.state;
-
-    if (init) {
-      filter = e;
-    }
-
-    let token = storejs.get('token', null)
-    let api = new ApiInterface(token.access);
-    let payload = {
-      join_type: filter.join_type
-    }
-    let url = "api/ajax_load_data/"
-    const self = this;
-
-    if (type == 'join_type') {
-      let join_type = 
-      this.getCounty(e.target.value)
-
-      filter.county = ""
-      filter.rural_survey = ""
-      filter.rural_block = ""
-      filter.rural_section = ""
-      filter.plss_meridian = ""
-      filter.plss_t_r = ""
-      filter.plss_section = ""
-      filter.sub_name = ""
-      filter.sub_unit = ""
-      filter.sub_block = ""
-      filter.sub_lot = ""
-      this.joinTypeSelection = {}
-
-      if (!init) {
-        filter[e.target.name] = e.target.value;
-        this.setState({filter: filter})
-      }
-      return;
-    } else if (type == 'county') {
-      if (!init) {
-        filter.rural_survey = ""
-        filter.rural_block = ""
-        filter.rural_section = ""
-        filter.plss_meridian = ""
-        filter.plss_t_r = ""
-        filter.plss_section = ""
-        filter.sub_name = ""
-        filter.sub_unit = ""
-        filter.sub_block = ""
-        filter.sub_lot = ""
-      }
-
-      payload['county'] = init ? value : e.target.value
-      payload['type'] = this.join_types[type][filter.join_type]
-      this.joinTypeSelection = {}
-      api.create(url, payload, function(res){
-        self.setState({level1: res})
-      })
-    } else if (type == 'level1') {
-      if (!init) {
-        filter.rural_block = ""
-        filter.rural_section = ""
-        filter.plss_t_r = ""
-        filter.plss_section = ""
-        filter.sub_unit = ""
-        filter.sub_block = ""
-        filter.sub_lot = ""
-      }
-
-      payload['county'] = filter.county
-      payload['level1'] = init ? value : e.target.value
-      payload['type'] = this.join_types[type][filter.join_type]
-      this.joinTypeSelection['level1'] = init ? value : e.target.value
-
-      api.create(url, payload, function(res){
-        self.setState({level2: res})
-      })
-    } else if (type == 'level2') {
-      if (!init) {
-        filter.rural_section = ""
-        filter.plss_section = ""
-        filter.sub_block = ""
-        filter.sub_lot = ""
-      }
-      payload['county'] = filter.county
-      payload['level1'] = this.joinTypeSelection['level1']
-      payload['level2'] = init ? value : e.target.value
-      this.joinTypeSelection['level2'] = init ? value : e.target.value
-      payload['type'] = this.join_types[type][filter.join_type]
-      api.create(url, payload, function(res){
-        self.setState({level3: res})
-      })
-    } else if (type == 'level3') {
-      if (!init) {
-        filter.sub_lot = ""
-      }
-      payload['county'] = filter.county
-      payload['level1'] = this.joinTypeSelection['level1']
-      payload['level2'] = this.joinTypeSelection['level2']
-      payload['level3'] = init ? value : e.target.value
-      this.joinTypeSelection['level3'] = init ? value : e.target.value
-      payload['type'] = this.join_types[type][filter.join_type]
-
-      if (payload['type']) {
-        api.create(url, payload, function(res){
-          self.setState({level4: res})
-        })
-      }
-    }
-
-    if (!init) {
-      filter[e.target.name] = e.target.value;
-      this.setState({filter: filter})
-    }
+    filter[e.target.name] = e.target.value;
+    this.setState({filter})
   }
 
   getCounty(join_type) {
@@ -903,43 +693,42 @@ class MapView extends Component {
                 <div><span className="p-title">Surface Type: </span> <span className="p-type">{property.pavement_type}</span></div>
               </StyledPopup>
             </Popup>}
-            {this.state.floods && <Source id="floodsTileLayer" tileJsonSource={this.floodsTileLayer} />}
-            {this.state.floods && <Layer type="raster" id="floodsTileLayer" sourceId="floodsTileLayer" />}
-
-            <Source id='mapillarysdata' tileJsonSource={this.state.option} />
+            <Source id='cemeterydata' tileJsonSource={this.state.option} />
             <Layer
-              id='mapillarysdata'
-              type='circle'
-              sourceId='mapillarysdata'
+              id='cemeterydata-polygon'
+              type='fill'
+              sourceId='cemeterydata'
               sourceLayer='default'
               paint={{
-                'circle-color': ['match',
-                    ['get', 'join_type'],
-                    'residential',
-                    '#27409a',
-                    'rural',
-                    '#c70f0f',
-                    'plss',
-                    '#d8951c',
-                    'route',
-                    'rgba(0,0,0,0)',
-                    '#000'
-                ],
+                'fill-color': '#0080ff',
+                'fill-opacity': 0.5
+              }}  
+            />
+            <Layer
+              id='cemeterydata-outline'
+              type='line'
+              sourceId='cemeterydata'
+              sourceLayer='default'
+              paint={{
+                'line-color': '#0067c5',
+                'line-width': 3
               }}
             />
             <Layer
-              id='mapillarysdata-line'
-              type='line'
-              sourceId='mapillarysdata'
+              id='cemeterydata-labels'
+              type='symbol'
+              sourceId='cemeterydata'
               sourceLayer='default'
-              paint={{
-                'line-color': ['match',
-                    ['get', 'join_type'],
-                    'route',
-                    'green',
-                    '#000'
-                ],
-                'line-width': 3
+              minZoom={20}
+              layout={{
+                'text-field': "Unit: {unit}, Blk: {block}\nLot: {lot}, Plot: {plot}",
+					      'text-font': [
+                    "DIN Offc Pro Medium",
+                    "Arial Unicode MS Bold"
+                  ],
+                  'text-size': 8,
+                  'symbol-placement': 'point',
+                  'text-anchor': 'center'
               }}
             />
             <ZoomControl position="top-left" />
