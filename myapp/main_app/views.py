@@ -123,6 +123,9 @@ class AssetGeoJson(APIView):
 		st_index = (page - 1) * 50
 		ed_index = page * 50
 
+		column = request.GET.get('column', None)
+		direction = request.GET.get('direction', None)
+
 		if request.GET.get('bound') and request.GET.get('gf') == None:
 			poly = Polygon.from_bbox(tuple(request.GET.get('bound').split(',')))
 			if is_mapped:
@@ -171,7 +174,18 @@ class AssetGeoJson(APIView):
 			condition_a = condition_a & (Q(plot__icontains=request.GET.get('plot')))
 
 		assets_all = MasterGeom.objects.filter(condition_a)
-		assets = assets_all.order_by('-id')[st_index: ed_index]
+
+		order_by = 'id'
+		
+		if column:
+			order_by = column
+			if column == 'first_name' or column == 'last_name' or column == 'suffix' or column == 'is_veteran':
+				order_by = 'cemetery_plot_form__%s'%column
+		
+		if direction and direction == 'desc':
+			order_by = '-%s'%order_by
+
+		assets = assets_all.order_by(order_by)[st_index: ed_index]
 
 		total = assets_all.count()
 
@@ -218,18 +232,7 @@ class getVectorTile(APIView):
 			search_field = search_field.replace("LIKE UPPER(", "LIKE UPPER('").replace("(%", "('%").replace("%)", "%')")
 
 			# sql = "SELECT ST_AsMVT(tile) FROM (SELECT id, ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)), unit, block, lot, plot from master_geom where %s and ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)) is not null) AS tile" % (zoom, x, y, search_field, zoom, x, y)
-
 			sql = "SELECT ST_AsMVT(tile) FROM (SELECT master_geom.id, ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)), unit, block, lot, plot, first_name, last_name from master_geom LEFT JOIN cemetery_plot_form ON master_geom.id=cemetery_plot_form.geom_id where %s and ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)) is not null) AS tile" % (zoom, x, y, search_field, zoom, x, y)
-
-			# if condition_a:
-			# 	search_field = MasterGeom.objects.filter(condition_a).query
-			# 	search_field = str(search_field).split("WHERE")[1].strip()
-			# 	search_field = search_field.replace("LIKE UPPER(", "LIKE UPPER('").replace("(%", "('%").replace("%)", "%')")
-
-			# 	sql = "SELECT ST_AsMVT(tile) FROM (SELECT id, ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)), unit, block, lot, plot from master_geom where %s and ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)) is not null) AS tile" % (zoom, x, y, search_field, zoom, x, y)
-			# 	print (sql)
-			# else:
-			# 	sql = "SELECT ST_AsMVT(tile) FROM (SELECT id, ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)), unit, block, lot, plot from master_geom where ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)) is not null) AS tile" % (zoom, x, y, zoom, x, y)
 
 			cursor.execute(sql)
 			tile = bytes(cursor.fetchone()[0])
