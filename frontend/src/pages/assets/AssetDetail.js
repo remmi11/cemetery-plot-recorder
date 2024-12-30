@@ -379,19 +379,24 @@ class AssetDetail extends Component {
     let self = this;
     let user = storejs.get('user')
 
-    let payload = JSON.parse(JSON.stringify(asset.cemetery_plot_form))
+    let payload = JSON.parse(JSON.stringify(asset.cemetery_plot_form));
 
     if (assetId != 'new') {
-      // console.log("saving asset form...")
+      console.log("saving asset form...", payload)
 
-      self.setState({saveTooltip: true});
+      if (payload.first_name != '' && payload.last_name != '') {
+        self.setState({saveTooltip: true});
 
-      api.update(`api/asset/${assetId}/`, payload, function(res){
-        self.props.setSelectedAsset(asset.id.toString())
-        self.props.closeAssetDetail();
+        api.update(`api/asset/${assetId}/`, payload, function(res){
+          self.props.setSelectedAsset(asset.id.toString())
+          self.props.closeAssetDetail();
 
-        self.setState({saveTooltip: false});
-      });
+          self.setState({saveTooltip: false});
+        });
+      }
+      else {
+        alert('Please provide First Name and Last Name!')
+      }
 
     } 
 
