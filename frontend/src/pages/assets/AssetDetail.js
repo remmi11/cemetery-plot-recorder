@@ -17,6 +17,7 @@ import {
   FormControl as MuiFormControl,
   Button as MuiButton,
   Snackbar,
+  Checkbox
 } from "@material-ui/core";
 
 import {
@@ -218,7 +219,7 @@ class AssetDetail extends Component {
     this.state = {
       asset: {
         ogc_fid: 1, first_name: '', middle_name: '', last_name: '', suffix: '', maiden_name: '',
-        veteran: false, county: '', addition: '', unit: '', block: '',
+        is_veteran: false, county: '', addition: '', unit: '', block: '',
         lot: '', plot: '', geom: '',
       },
       tab: 0,
@@ -362,12 +363,12 @@ class AssetDetail extends Component {
 
     if (type == 'first_name' || type == 'last_name' || type == 'middle_name' || type == 'suffix' || type == 'maiden_name') {
       asset.cemetery_plot_form[type] = e.target.value;
-      this.setState(asset);
-    } else { 
-        asset[e.target.name] = e.target.value;
-        this.setState(asset);
+    } 
+    else if(type == 'is_veteran') {
+      asset.cemetery_plot_form[type] = e.target.checked;
     }
 
+    this.setState(asset);
   }
 
   submitForm = () => {
@@ -381,7 +382,7 @@ class AssetDetail extends Component {
     let payload = JSON.parse(JSON.stringify(asset.cemetery_plot_form))
 
     if (assetId != 'new') {
-      console.log("saving asset form...")
+      // console.log("saving asset form...")
 
       self.setState({saveTooltip: true});
 
@@ -400,23 +401,6 @@ class AssetDetail extends Component {
   handleSubmit(noLot) {
     
   }
-
-  // // The event function to delete an asset.
-  // onAssetDelete(e) {
-  //   let { asset } = this.state;
-  //   let token = storejs.get('token', null)
-  //   let api = new ApiInterface(token.access);
-  //   const self = this;
-
-  //   let r = window.confirm("Are you sure you want to delete the selected asset?");
-
-  //   if (r) {
-  //     api.delete('api/asseta/' + asset.id + '/', function(res){
-  //       self.setState({notification_text: "Asset deleted.", notification: true, notification_type: 'success'});
-  //       setTimeout(function(){self.props.history.push('/assets');}, 3000);
-  //     });
-  //   }
-  // }
 
   // The function to close the notification.
   handleClose() {
@@ -549,6 +533,14 @@ class AssetDetail extends Component {
                           onChange={(e) => this.handleChange(e, 'maiden_name')} fullWidth />
                       </FormControl>
                     </Grid>                  
+                    <Grid item md={12} xs={12}>
+                      <FormControl margin="normal" fullWidth>
+                        <span style={{color: 'rgba(0, 0, 0, 0.54)', fontSize: '12px'}}>Is Veteran?</span>
+                        <Checkbox id="is_veteran" name="is_veteran" style={{width: '10px'}}
+                          checked={asset.cemetery_plot_form?asset.cemetery_plot_form.is_veteran:false} 
+                          onChange={(e) => this.handleChange(e, 'is_veteran')} />
+                      </FormControl>
+                    </Grid>                  
                   </Grid>
                 </Grid>
                 
@@ -587,7 +579,7 @@ class AssetDetail extends Component {
                     <Grid item md={6} xs={12}>
                       <FormControl margin="normal" fullWidth>
                         <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Lot</div>
-                        <TextField disabled id="lot" name="lot" value={asset.lot} label="" fullWidth />
+                        <TextField disabled id="lot" name="lot" value={asset.lot?asset.lot:''} label="" fullWidth />
                       </FormControl>
                     </Grid>
                     <Grid item md={1} xs={12}></Grid>

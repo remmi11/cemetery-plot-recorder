@@ -423,7 +423,7 @@ class AssetATableView extends Component {
       this.setState({loader: true});
     }
     if (nextProps.bbox != bbox && bbox) {
-      console.log(bbox)
+      // console.log(bbox)
       storejs.set('bounds', bbox)
     }
   }
@@ -453,7 +453,6 @@ class AssetATableView extends Component {
       assets.features.forEach(asset => {
         let properties = asset.properties;
 
-        // properties.updated_at = new Date(properties.updated_at).toLocaleDateString();
         if (asset.geometry) {
           properties.geom = <GeomIcon className={`${properties.join_type}`}></GeomIcon>
         }
@@ -463,6 +462,10 @@ class AssetATableView extends Component {
           properties.last_name = properties.cemetery_plot_form.last_name;
           properties.suffix = properties.cemetery_plot_form.suffix;
           properties.maiden_name = properties.cemetery_plot_form.maiden_name;
+          if (properties.cemetery_plot_form.is_veteran) 
+            properties.is_veteran = 'Yes';
+          else
+            properties.is_veteran = 'No';
         }
 
         temp.push(properties);
@@ -480,7 +483,7 @@ class AssetATableView extends Component {
 
   // The event funciton to open 'custom columns' or 'advanced filters' dialogs. 
   handleOpen(e, type) {
-    console.log(type)
+    // console.log(type)
     if (type == 'columnDialog') {
       this.setState({columnDialog: true})
     } else {
@@ -520,7 +523,7 @@ class AssetATableView extends Component {
 
   onSubFilter(e) {
     if (e.key === 'Enter') {
-      console.log('submit ---')
+      // console.log('submit ---')
       let {globalFilter, lAssets} = this.props;
       let {sort, filter} = this.state;
       let isFilered = false;
@@ -595,7 +598,7 @@ class AssetATableView extends Component {
   // The event function to go to the asset detail page, when selecting row in the asset table.
   onRowClick(e) {
     // window.location.href = '/assets/detail/' + e.pk;
-    console.log("Row clicked...", e, e.pk);
+    // console.log("Row clicked...", e, e.pk);
     this.setState({assetDetail: true, selectedAsset: e.pk});
   }
 
@@ -715,7 +718,7 @@ class AssetATableView extends Component {
       let token = storejs.get('token', null)
       let api = new ApiInterface(token.access);
 
-      console.log('yes!')
+      // console.log('yes!')
 
       let {filter, globalFilter} = this.props;
       let {sort, page} = this.state;
@@ -791,7 +794,7 @@ class AssetATableView extends Component {
         </Grid >
         <Grid item md={6} mb={6} className="actions">
           <div style={{marginRight: '25px'}}>
-            <Button mr={2} title="Download Assets" color="primary" onClick={()=>this.downloadFile()} variant="outlined">
+            <Button mr={2} title="Download Plots" color="primary" onClick={()=>this.downloadFile()} variant="outlined">
               <CloudDownload />
             </Button>
             {false && <Button mr={2} title="Custom Columns" color="primary" onClick={(e)=>this.handleOpen(e, 'columnDialog')} variant="outlined">

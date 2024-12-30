@@ -356,6 +356,12 @@ class MapView extends Component {
   componentDidUpdate(nextProps) {
     let {bbox} = this.props;
     let {isFirstLoad} = this.state;
+
+    if (isFirstLoad && nextProps.bbox != bbox && bbox) {
+      storejs.set('bounds', bbox)
+      this.setState({bbox: bbox, isFirstLoad: false})
+    }
+
   }
 
   componentWillUnmount() {
@@ -546,9 +552,13 @@ class MapView extends Component {
 
   onZoom(map, event) {
     let {filter, globalFilter} = this.props;
+    let bounds = map.getBounds();    
+    bounds = [bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat];
+    storejs.set('bounds', bounds);
+
     filter['mapped'] = true;
     this.props.getDataFromServer(filter, globalFilter, 1, null, null, false);
-    this.props.onMapped(true)
+    this.props.onMapped(true);
   }
 
   closeAndNew = () => {
