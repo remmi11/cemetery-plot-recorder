@@ -17,5 +17,5 @@ class MasterGeomSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = MasterGeom
-		fields = ('id', 'ogc_fid', 'shape_leng', 'shape_area', 'county', 'addition', 'unit', 'block', 'lot', 'cemetery_plot_form', 'geom')
+		fields = ('id', 'ogc_fid', 'shape_leng', 'shape_area', 'county', 'addition', 'unit', 'block', 'lot', 'plot', 'cemetery_plot_form', 'geom')
 

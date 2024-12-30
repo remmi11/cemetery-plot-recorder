@@ -648,8 +648,8 @@ class MapView extends Component {
               layout={{
                 'text-field': [
                   'case',
-                  ['!=', ['get', 'first_name'], null],
-                  ['get', 'first_name'],
+                  ['!=', ['get', 'last_name'], null],
+                  ['get', 'last_name'],
                   '', // Otherwise, show nothing
                 ],               
 					      'text-font': [
