@@ -266,11 +266,12 @@ class MapView extends Component {
 
     let user = storejs.get('user');
 
-    let bound = null;
-    if (storejs.get('bounds', null)) {
-      bound = storejs.get('bounds')
-      bound = [[bound[0], bound[1]], [bound[2], bound[3]]]
-    }
+    let bound = [
+      [-100.022393, 36.1248534], // Southwest coordinates
+      [-100.011866, 36.1307898] // Northeast coordinates
+    ];
+
+    storejs.set('bounds', bound);
 
     this.state = {
       filterDialog: false,
@@ -281,7 +282,7 @@ class MapView extends Component {
       bbox: bound,
       property: null,
       timestamp: 12,
-      bounds: null,
+      bounds: bound,
       filter: {},
       filterBubbles: {},
 
@@ -293,10 +294,6 @@ class MapView extends Component {
       cityLimits: false,
       parcels: false,
       sections: false,
-      level1: [],
-      level2: [],
-      level3: [],
-      level4: [],
       counties: [],
 
       filterIcon: false,
@@ -304,8 +301,8 @@ class MapView extends Component {
       option: {
         "type": "vector",
         "tiles": [config.DEV_IPS[config.env] + '/api/get-tile/{z}/{x}/{y}.mvt', ],
-        'minzoom': 6,
-        'maxzoom': 22,
+        'minzoom': 16,
+        'maxzoom': 24,
       },
 
       viewport: {},
@@ -313,6 +310,7 @@ class MapView extends Component {
       selectedAsset: null,
 
       center: [-100.0174217, 36.1279298],
+      maxZoom: 24,
       isFirstLoad: true,
     }
 
@@ -331,9 +329,6 @@ class MapView extends Component {
   componentDidMount() {
     let {option} = this.state;
     let { filter, globalFilter } = this.props;
-
-    let token = storejs.get('token', null)
-    let api = new ApiInterface(token.access);
     const self = this;
     let isFilered = false;
 
@@ -353,7 +348,6 @@ class MapView extends Component {
     }
 
     this.setState({filter, option: {...option, tiles: [this.tileUrl + url]}, center: this.state.center, filterIcon: isFilered, filterBubbles})
-    // this.zoom = null;
 
     storejs.set('assetPrePage', 'map');
     document.addEventListener('mousedown', this.handleClickOutside);
@@ -362,12 +356,6 @@ class MapView extends Component {
   componentDidUpdate(nextProps) {
     let {bbox} = this.props;
     let {isFirstLoad} = this.state;
-
-    if (isFirstLoad && nextProps.bbox != bbox && bbox) {
-      storejs.set('bounds', bbox)
-      this.setState({bbox: bbox, isFirstLoad: false})
-    }
-
   }
 
   componentWillUnmount() {
@@ -377,15 +365,8 @@ class MapView extends Component {
   onSelected = (viewport, item) => {
     let {filter, globalFilter} = this.props;
     this.setState({viewport});
-    // console.log('Selected: ', item)
 
-    let center = item.center
-    let bbox = [center[0] - 0.001, center[1] - 0.001, center[0] + 0.001, center[1] + 0.001]
-    storejs.set('bounds', bbox)
-    // console.log("Bound for click ->", bbox)
-    
-    this.setState({bbox: bbox})
-
+    let center = item.center;
     filter['mapped'] = true;
     this.props.getDataFromServer(filter, globalFilter, 1, null, null, false);
     this.props.onMapped(true);
@@ -526,7 +507,7 @@ class MapView extends Component {
   onClickMap(map, e) {
     let token = storejs.get('token', null)
     let api = new ApiInterface(token.access);
-    let { filter, globalFilter, showAssetDialog } = this.props;
+    let { filter, globalFilter, showPlotDialog: showPlotDialog } = this.props;
     const self = this;
 
     delete filter['page'];
@@ -534,7 +515,7 @@ class MapView extends Component {
     filter['lat'] = e.lngLat.lat;
     filter['lng'] = e.lngLat.lng;
     
-    console.log("Map click =>", filter);
+    // console.log("Map click =>", filter);
 
     api.call('api/get-assets/', filter, function(res){
       let lat = e.lngLat.lat, lng = e.lngLat.lng;
@@ -545,28 +526,14 @@ class MapView extends Component {
           lng = parseFloat(geom[0]);
 
           // this.setState({assetDetail: true, selectedAsset: res[0].id});
-          showAssetDialog(res[0].id);
+          showPlotDialog(res[0].id);
 
           // console.log("map click -> data loaded -> count =", res.length, " |", res)
-          console.log("lat, lng:", lat, lng, res);
+          // console.log("lat, lng:", lat, lng, res);
 
         }
-
-        // let bbox = [lng - 0.00003, lat - 0.000015, lng + 0.00003, lat + 0.000015];
-        // // let bbox = [lng - 0.00005, lat, lng + 0.00005, lat];
-        // console.log('bound after click =>', bbox);
-        // storejs.set('bounds', bbox);
-        // self.setState({bbox: bbox});
-
-        // filter['mapped'] = true;
-        // self.props.setAssets([]);
-        // self.props.getDataFromServer(filter, globalFilter, 1, null, null, false);
-        // self.props.onMapped(true);
-        // self.props.onToggle('table');
       } else {
-        // window.location.href="/assets/detail/" + res[0].pk;
-        // self.setState({selectedAsset: res[0].pk, assetDetail: true});
-        console.log("Error in asset details API...")
+        console.log("Error in plot details API...")
       }
     })
   }
@@ -579,12 +546,6 @@ class MapView extends Component {
 
   onZoom(map, event) {
     let {filter, globalFilter} = this.props;
-    let bounds = map.getBounds();
-    bounds = [bounds._sw.lng, bounds._sw.lat, bounds._ne.lng, bounds._ne.lat];
-    // console.log("zoom event...", bounds);
-
-    storejs.set('bounds', bounds);
-
     filter['mapped'] = true;
     this.props.getDataFromServer(filter, globalFilter, 1, null, null, false);
     this.props.onMapped(true)
@@ -600,14 +561,7 @@ class MapView extends Component {
   }
 
   render() {
-    let {assets, bbox, geojson, property, selected, timestamp, bounds, filter, detailInfo, mapLayer, showMapLayer, viewport, filterIcon} = this.state;
-    let layers = [], coordinates = [];
-
-    let tp_bounds = null;
-    // if (this.loaded == false && geojson != null) {
-    //     tp_bounds = this.getBounds(geojson);
-    //     this.loaded = true;
-    // }
+    let {bbox, property, selected, timestamp, bounds, mapLayer, showMapLayer, viewport, filterIcon} = this.state;
 
     return (
       <MapViewWrapper container mb={6}>
@@ -629,70 +583,21 @@ class MapView extends Component {
           })}
         </Grid>        
         <Grid item md={12} mb={6} xs={12}>
-          {showMapLayer && <LayerPanel ref={this.layerRef}>
-            <FormGroup>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    onChange={e => this.changeTyleLayer(e, "sections")}
-                    checked={this.state.sections}
-                    value="sections"
-                  />
-                }
-                label="Sections"
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    onChange={e => this.changeTyleLayer(e, "parcels")}
-                    checked={this.state.parcels}
-                    value="parcels"
-                  />
-                }
-                label="Parcels"
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    onChange={e => this.changeTyleLayer(e, "floods")}
-                    checked={this.state.floods}
-                    value="flood"
-                  />
-                }
-                label="Flood Harzards"
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    onChange={e => this.changeTyleLayer(e, "cityLimits")}
-                    checked={this.state.cityLimits}
-                    value="city"
-                  />
-                }
-                label="City Limits"
-              />
-            </FormGroup>
-          </LayerPanel>}
-          <Geocoder
+          {/* <Geocoder
             {...mapAccess} onSelected={this.onSelected} viewport={viewport}
             queryParams={queryParams}
             inputComponent={SearchInput}
-          />
+          /> */}
           <Map key={timestamp}
             style={mapLayer}
             center={this.state.center}
             fitBounds={bbox}
+            maxBounds={bounds}
+            maxZoom={24}
             onClick = {(map, evt) => this.onClickMap(map, evt)}
             onZoomEnd = {(map, evt) => this.onZoom(map, evt)}
             onDragEnd = {(map, evt) => this.onZoom(map, evt)}
           >
-            {selected && <Popup key={property.pk} coordinates={selected}>
-              <StyledPopup>
-                <div className="title">{property.asset_id} ({property.name})</div>
-                <div><span className="p-title">Functional Classification:</span> <span className="p-function"></span></div>
-                <div><span className="p-title">Surface Type: </span> <span className="p-type">{property.pavement_type}</span></div>
-              </StyledPopup>
-            </Popup>}
             <Source id='cemeterydata' tileJsonSource={this.state.option} />
             <Layer
               id='cemeterydata-polygon'
@@ -719,327 +624,50 @@ class MapView extends Component {
               type='symbol'
               sourceId='cemeterydata'
               sourceLayer='default'
-              minZoom={20}
+              minZoom={18}
               layout={{
-                'text-field': "Unit: {unit}, Blk: {block}\nLot: {lot}, Plot: {plot}",
+                'text-field': "U: {unit}, B: {block}\nL: {lot}, P: {plot}",
 					      'text-font': [
                     "DIN Offc Pro Medium",
                     "Arial Unicode MS Bold"
                   ],
-                  'text-size': 8,
+                  'text-size': 6,
                   'symbol-placement': 'point',
                   'text-anchor': 'center'
+              }}
+              paint={{
+                'text-color': '#000000'
+              }}
+            />
+            <Layer
+              id='cemeterydata-form-labels'
+              type='symbol'
+              sourceId='cemeterydata'
+              sourceLayer='default'
+              minZoom={18}
+              layout={{
+                'text-field': [
+                  'case',
+                  ['!=', ['get', 'first_name'], null],
+                  ['get', 'first_name'],
+                  '', // Otherwise, show nothing
+                ],               
+					      'text-font': [
+                  "DIN Offc Pro Medium",
+                  "Arial Unicode MS Bold"
+                ],
+                'text-size': 8,
+                'symbol-placement': 'point',
+                'text-anchor': 'center'
+              }}
+              paint={{
+                'text-color': '#FF0000'
               }}
             />
             <ZoomControl position="top-left" />
             <ScaleControl measurement="mi" />
           </Map>
         </Grid>
-
-        <Dialog
-          open={this.state.filterDialog}
-          onClose={(e)=>this.setState({filterDialog: false})}
-          aria-labelledby="form-dialog-title"
-          maxWidth="md"
-          fullWidth={true}
-          className="filter-dialog"
-        >
-          <DialogTitle id="form-dialog-title">Advanced Filters</DialogTitle>
-          <DialogContent>
-            <GridContent container>
-              <Grid item md={5} xs={12} style={{maxWidth: '45%', flexBasis: '45%'}}>
-                <Grid container>
-                  <FilterTitle item md={12} xs={12}>
-                    Collection:
-                  </FilterTitle>
-                  <Grid item md={12} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Survey Collection</div>
-                      <Select id="collection"
-                      value={filter.collection || ""}
-                      name="collection" onChange={(e) => this.handleFilters(e)} fullWidth>
-                        <MenuItem value="APEX">Apex</MenuItem>
-                        <MenuItem value="Furman Land Surveyors, Inc.">Furman Land Surveyors, Inc.</MenuItem>
-                        <MenuItem value="GDI, Inc. - Amarillo">GDI, Inc. - Amarillo</MenuItem>
-                        <MenuItem value="GDI, Inc. - Canadian">GDI, Inc. - Canadian</MenuItem>
-                        <MenuItem value="GOLLADAY">Golladay</MenuItem>
-                        <MenuItem value="KELLER">Keller</MenuItem>
-                        <MenuItem value="LAMB">Lamb</MenuItem>
-                        <MenuItem value="MILLER_TITUS">Miller - Titus</MenuItem>
-                        <MenuItem value="TRIGG">Trigg</MenuItem>
-                        <MenuItem value="DAVIS">Davis</MenuItem>
-                        <MenuItem value="SEDCO">Sedco</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <FilterTitle item md={12} xs={12} style={{marginTop: '20px'}}>
-                    Property Info:
-                  </FilterTitle>
-                  <Grid item md={12} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <TextField id="project_no" name="project_no"
-                        value={filter.project_no || ""} label="Project No"
-                        onChange={(e) => this.handleFilters(e)} fullWidth />
-                    </FormControl>
-                  </Grid>
-                  <Grid item md={12} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <TextField id="client" name="client"
-                        value={filter.client || ""} label="Client"
-                        onChange={(e) => this.handleFilters(e)} fullWidth />
-                    </FormControl>
-                  </Grid>
-                  <Grid item md={12} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <TextField id="requested_by" name="requested_by"
-                        value={filter.requested_by || ""} label="Requested By"
-                        onChange={(e) => this.handleFilters(e)} fullWidth />
-                    </FormControl>
-                  </Grid>
-                  <Grid item md={12} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <TextField id="certify_to" name="certify_to"
-                        value={filter.certify_to || ""} label="Certify To"
-                        onChange={(e) => this.handleFilters(e)} fullWidth />
-                    </FormControl>
-                  </Grid>
-                  <Grid item md={12} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <TextField id="contact_name" name="contact_name"
-                        value={filter.contact_name || ""} label="Contact Name"
-                        onChange={(e) => this.handleFilters(e)} fullWidth />
-                    </FormControl>
-                  </Grid>
-                </Grid>
-              </Grid>
-              <Grid item md={1} xs={12}></Grid>
-              <Grid item md={5} xs={12} style={{maxWidth: '45%', flexBasis: '45%'}}>
-                <Grid container>
-                  <FilterTitle item md={12} xs={12}>
-                    Property Info:
-                  </FilterTitle>
-                  <Grid item md={5} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <TextField id="map_no" name="map_no"
-                        value={filter.map_no || ""} label="Map No"
-                        onChange={(e) => this.handleFilters(e)} fullWidth />
-                    </FormControl>
-                  </Grid>
-                  <Grid item md={1} xs={12}></Grid>
-                  <Grid item md={6} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <TextField id="contact_address" name="contact_address"
-                        value={filter.contact_address || ""} label="Address"
-                        onChange={(e) => this.handleFilters(e)} fullWidth />
-                    </FormControl>
-                  </Grid>
-                  <Grid item md={12} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <TextField id="aka" name="aka"
-                        value={filter.aka || ""} label="AKA"
-                        onChange={(e) => this.handleFilters(e)} fullWidth />
-                    </FormControl>
-                  </Grid>
-                  <FilterTitle item md={12} xs={12} style={{'marginTop': '20px'}}>
-                    Energy Clients:
-                  </FilterTitle>
-                  <Grid item md={5} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <TextField id="well_name" name="well_name"
-                        value={filter.well_name || ""} label="Well Name"
-                        onChange={(e) => this.handleFilters(e)} fullWidth />
-                    </FormControl>
-                  </Grid>
-                  <Grid item md={1} xs={12}></Grid>
-                  <Grid item md={6} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <TextField id="well_number" name="well_number"
-                        value={filter.well_number || ""} label="Well No"
-                        onChange={(e) => this.handleFilters(e)} fullWidth />
-                    </FormControl>
-                  </Grid>
-
-                  <FilterTitle item md={12} xs={12} style={{'marginTop': '20px'}}>
-                    Legal:
-                  </FilterTitle>
-                  <Grid item md={5} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Survey Type</div>
-                      <Select id="join_type"
-                      value={filter.join_type || ""}
-                      name="join_type" onChange={(e) => this.handleFilters(e, 'join_type')} fullWidth>
-                        <MenuItem value="residential">Residential</MenuItem>
-                        <MenuItem value="rural">Rural</MenuItem>
-                        <MenuItem value="plss">Plss</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item md={1} xs={12}></Grid>
-                  <Grid item md={6} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>County</div>
-                      <Select id="county"
-                      value={filter.county || ""}
-                      name="county" onChange={(e) => this.handleFilters(e, 'county')} fullWidth>
-                        <MenuItem value=""></MenuItem>
-                        {this.state.counties.map(county => {
-                          return <MenuItem value={county}>{county}</MenuItem>
-                        })}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  {filter.join_type == 'plss' && <Grid item md={5} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Meridian</div>
-                      <Select id="plss_meridian"
-                      value={filter.plss_meridian || ""}
-                      name="plss_meridian" onChange={(e) => this.handleFilters(e, 'level1')} fullWidth>
-                        <MenuItem value=""></MenuItem>
-                        {this.state.level1.map(county => {
-                          return <MenuItem value={county}>{county}</MenuItem>
-                        })}
-                      </Select>
-                    </FormControl>
-                  </Grid>}
-                  {filter.join_type == 'plss' && <Grid item md={1} xs={12}></Grid>}
-                  {filter.join_type == 'plss' && <Grid item md={6} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Township Range</div>
-                      <Select id="plss_t_r"
-                      value={filter.plss_t_r || ""}
-                      name="plss_t_r" onChange={(e) => this.handleFilters(e, 'level2')} fullWidth>
-                        <MenuItem value=""></MenuItem>
-                        {this.state.level2.map(county => {
-                          return <MenuItem value={county}>{county}</MenuItem>
-                        })}
-                      </Select>
-                    </FormControl>
-                  </Grid>}
-                  {filter.join_type == 'plss' && <Grid item md={5} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Section</div>
-                      <Select id="plss_section"
-                      value={filter.plss_section || ""}
-                      name="plss_section" onChange={(e) => this.handleFilters(e, 'level3')} fullWidth>
-                        <MenuItem value=""></MenuItem>
-                        {this.state.level3.map(county => {
-                          return <MenuItem value={county}>{county}</MenuItem>
-                        })}
-                      </Select>
-                    </FormControl>
-                  </Grid>}
-
-                  {filter.join_type == 'residential' && <Grid item md={5} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Subdivision</div>
-                      <Select id="sub_name"
-                      value={filter.sub_name || ""}
-                      name="sub_name" onChange={(e) => this.handleFilters(e, 'level1')} fullWidth>
-                        <MenuItem value=""></MenuItem>
-                        {this.state.level1.map(county => {
-                          return <MenuItem value={county}>{county}</MenuItem>
-                        })}
-                      </Select>
-                    </FormControl>
-                  </Grid>}
-                  {filter.join_type == 'residential' && <Grid item md={1} xs={12}></Grid>}
-                  {filter.join_type == 'residential' && <Grid item md={6} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Unit</div>
-                      <Select id="sub_unit"
-                      value={filter.sub_unit || ""}
-                      name="sub_unit" onChange={(e) => this.handleFilters(e, 'level2')} fullWidth>
-                        <MenuItem value=""></MenuItem>
-                        {this.state.level2.map(county => {
-                          return <MenuItem value={county}>{county}</MenuItem>
-                        })}
-                      </Select>
-                    </FormControl>
-                  </Grid>}
-                  {filter.join_type == 'residential' && <Grid item md={5} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Sub Block</div>
-                      <Select id="sub_block"
-                      value={filter.sub_block || ""}
-                      name="sub_block" onChange={(e) => this.handleFilters(e, 'level3')} fullWidth>
-                        <MenuItem value=""></MenuItem>
-                        {this.state.level3.map(county => {
-                          return <MenuItem value={county}>{county}</MenuItem>
-                        })}
-                      </Select>
-                    </FormControl>
-                  </Grid>}
-                  {filter.join_type == 'residential' && <Grid item md={1} xs={12}></Grid>}
-                  {filter.join_type == 'residential' && <Grid item md={6} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Lot</div>
-                      <Select id="sub_lot"
-                      value={filter.sub_lot || ""}
-                      name="sub_lot" onChange={(e) => this.handleFilters(e, 'level4')} fullWidth>
-                        <MenuItem value=""></MenuItem>
-                        {this.state.level4.map(county => {
-                          return <MenuItem value={county}>{county}</MenuItem>
-                        })}
-                      </Select>
-                    </FormControl>
-                  </Grid>}
-
-                  {filter.join_type == 'rural' && <Grid item md={5} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Survey</div>
-                      <Select id="rural_survey"
-                      value={filter.rural_survey || ""}
-                      name="rural_survey" onChange={(e) => this.handleFilters(e, 'level1')} fullWidth>
-                        <MenuItem value=""></MenuItem>
-                        {this.state.level1.map(county => {
-                          return <MenuItem value={county}>{county}</MenuItem>
-                        })}
-                      </Select>
-                    </FormControl>
-                  </Grid>}
-                  {filter.join_type == 'rural' && <Grid item md={1} xs={12}></Grid>}
-                  {filter.join_type == 'rural' && <Grid item md={6} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Block</div>
-                      <Select id="rural_block"
-                      value={filter.rural_block || ""}
-                      name="rural_block" onChange={(e) => this.handleFilters(e, 'level2')} fullWidth>
-                        <MenuItem value=""></MenuItem>
-                        {this.state.level2.map(county => {
-                          return <MenuItem value={county}>{county}</MenuItem>
-                        })}
-                      </Select>
-                    </FormControl>
-                  </Grid>}
-                  {filter.join_type == 'rural' && <Grid item md={5} xs={12}>
-                    <FormControl margin="normal" fullWidth>
-                      <div className="control-title" style={{color: 'gray', fontSize: '12px'}}>Section</div>
-                      <Select id="rural_section"
-                      value={filter.rural_section || ""}
-                      name="rural_section" onChange={(e) => this.handleFilters(e, 'level3')} fullWidth>
-                        <MenuItem value=""></MenuItem>
-                        {this.state.level3.map(county => {
-                          return <MenuItem value={county}>{county}</MenuItem>
-                        })}
-                      </Select>
-                    </FormControl>
-                  </Grid>}
-                </Grid>
-              </Grid>
-            </GridContent>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={(e)=>this.applyFilter(e)} color="primary" variant="contained" >
-              APPLY
-            </Button>
-            <Button onClick={(e)=>this.clearFilter(e)} color="primary" variant="outlined" >
-              CLEAR
-            </Button>
-            <Button onClick={(e)=>this.setState({filterDialog: false})} color="primary" variant="outlined" >
-              CANCEL
-            </Button>
-          </DialogActions>
-        </Dialog>
 
         <Dialog
           open={this.state.detailDialog}

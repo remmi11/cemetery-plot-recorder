@@ -370,7 +370,7 @@ class Assets extends Component {
     }, 1000)
   }
 
-  showAssetDialog = (selectedAssetId) => {
+  showPlotDialog = (selectedAssetId) => {
     this.setState({selectedAsset: selectedAssetId, assetDetail: true});
   }
 
@@ -422,7 +422,7 @@ class Assets extends Component {
                   onUpdateFilter={(filter) => this.onUpdateFilter(filter)} 
                   convertPointFormat={(geo) => this.convertPointFormat(geo)} 
                   onMapped={(mapped) => this.onMapped(mapped)}
-                  showAssetDialog={(assetId) => this.showAssetDialog(assetId)}
+                  showPlotDialog={(assetId) => this.showPlotDialog(assetId)}
                 />}
                 {this.state.toggle == 'table' && <TableView
                   lAssets={this.state.assets}

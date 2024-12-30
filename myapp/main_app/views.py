@@ -213,19 +213,26 @@ class getVectorTile(APIView):
 		condition_a = ~Q(geom=None)
 
 		with connection.cursor() as cursor:
-			if condition_a:
-				search_field = MasterGeom.objects.filter(condition_a).query
-				search_field = str(search_field).split("WHERE")[1].strip()
-				search_field = search_field.replace("LIKE UPPER(", "LIKE UPPER('").replace("(%", "('%").replace("%)", "%')")
+			search_field = MasterGeom.objects.filter(condition_a).query
+			search_field = str(search_field).split("WHERE")[1].strip()
+			search_field = search_field.replace("LIKE UPPER(", "LIKE UPPER('").replace("(%", "('%").replace("%)", "%')")
 
-				sql = "SELECT ST_AsMVT(tile) FROM (SELECT id, ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)), unit, block, lot, plot from master_geom where %s and ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)) is not null) AS tile" % (zoom, x, y, search_field, zoom, x, y)
-				print (sql)
-			else:
-				sql = "SELECT ST_AsMVT(tile) FROM (SELECT id, ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)), unit, block, lot, plot from master_geom where ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)) is not null) AS tile" % (zoom, x, y, zoom, x, y)
+			# sql = "SELECT ST_AsMVT(tile) FROM (SELECT id, ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)), unit, block, lot, plot from master_geom where %s and ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)) is not null) AS tile" % (zoom, x, y, search_field, zoom, x, y)
+
+			sql = "SELECT ST_AsMVT(tile) FROM (SELECT master_geom.id, ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)), unit, block, lot, plot, first_name, last_name from master_geom LEFT JOIN cemetery_plot_form ON master_geom.id=cemetery_plot_form.geom_id where %s and ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)) is not null) AS tile" % (zoom, x, y, search_field, zoom, x, y)
+
+			# if condition_a:
+			# 	search_field = MasterGeom.objects.filter(condition_a).query
+			# 	search_field = str(search_field).split("WHERE")[1].strip()
+			# 	search_field = search_field.replace("LIKE UPPER(", "LIKE UPPER('").replace("(%", "('%").replace("%)", "%')")
+
+			# 	sql = "SELECT ST_AsMVT(tile) FROM (SELECT id, ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)), unit, block, lot, plot from master_geom where %s and ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)) is not null) AS tile" % (zoom, x, y, search_field, zoom, x, y)
+			# 	print (sql)
+			# else:
+			# 	sql = "SELECT ST_AsMVT(tile) FROM (SELECT id, ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)), unit, block, lot, plot from master_geom where ST_AsMVTGeom(geom, TileBBox(%s, %s, %s, 4326)) is not null) AS tile" % (zoom, x, y, zoom, x, y)
 
 			cursor.execute(sql)
 			tile = bytes(cursor.fetchone()[0])
-			#print (tile)
 			if not len(tile):
 				raise Http404()
 		return HttpResponse(tile, content_type="application/x-protobuf")
@@ -528,29 +535,6 @@ class Dashboard(APIView):
 		for index in range(12, 0, -1):
 			dt = datetime.today() - relativedelta(months=index)
 			labels.append(dt.strftime('%b'))
-
-		# for label in ['residential', 'rural', 'plss', 'route']:
-		# 	resultByMonth = (
-		# 		CemeteryPlotForm.objects
-		# 			.filter(date_entered__gte=date, join_type=label)
-		# 			.values_list('date_entered__year', 'date_entered__month')
-		# 			.annotate(count=Count('id'))
-		# 			.order_by('date_entered__year', 'date_entered__month')
-		# 	)
-
-		# 	res = dict()
-		# 	for item in reversed(list(resultByMonth)):
-		# 		dateStr = "%s-%s-01 00:00" % (item[0], item[1])
-		# 		tp = [item[0], item[1], item[2], datetime.strptime(dateStr, "%Y-%m-%d %H:%M").strftime('%b')]
-		# 		res[tp[3]] = tp[2]
-
-		# 	print (res)
-		# 	values = []
-		# 	for lb in labels:
-		# 		value = 0 if lb not in res.keys() else res[lb]
-		# 		values.append(value)
-
-		# 	result[label] = values
 
 		return Response({'data': result, 'labels': labels})
 
