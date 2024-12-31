@@ -287,8 +287,9 @@ class MapView extends Component {
       filterBubbles: {},
 
       detailInfo: {},
-      mapLayer: 'mapbox://styles/wtgeographer/cky1pualh4lid14qit4qrhack',
-      showMapLayer: false,
+      // mapLayer: 'mapbox://styles/wtgeographer/cky1pualh4lid14qit4qrhack',
+      mapLayer: 'mapbox://styles/mapbox/streets-v11',
+      showMapLayer: true,
 
       floods: false,
       cityLimits: false,
@@ -302,7 +303,6 @@ class MapView extends Component {
         "type": "vector",
         "tiles": [config.DEV_IPS[config.env] + '/api/get-tile/{z}/{x}/{y}.mvt', ],
         'minzoom': 16,
-        'maxzoom': 24,
       },
 
       viewport: {},
@@ -310,14 +310,12 @@ class MapView extends Component {
       selectedAsset: null,
 
       center: [-100.0174217, 36.1279298],
-      maxZoom: 24,
       isFirstLoad: true,
     }
 
     this.tileUrl = config.DEV_IPS[config.env] + '/api/get-tile/{z}/{x}/{y}.mvt?'
     this.filter = {};
     this.drawControl = null;
-    this.zoom = [16];
     this.loaded = false;
 
     this.layerRef = React.createRef();
@@ -571,7 +569,7 @@ class MapView extends Component {
   }
 
   render() {
-    let {bbox, property, selected, timestamp, bounds, mapLayer, showMapLayer, viewport, filterIcon} = this.state;
+    let {bbox, timestamp, bounds, mapLayer, filterIcon} = this.state;
 
     return (
       <MapViewWrapper container mb={6}>
@@ -601,9 +599,9 @@ class MapView extends Component {
           <Map key={timestamp}
             style={mapLayer}
             center={this.state.center}
+            maxZoom={24}
             fitBounds={bbox}
             maxBounds={bounds}
-            maxZoom={24}
             onClick = {(map, evt) => this.onClickMap(map, evt)}
             onZoomEnd = {(map, evt) => this.onZoom(map, evt)}
             onDragEnd = {(map, evt) => this.onZoom(map, evt)}
@@ -636,12 +634,12 @@ class MapView extends Component {
               sourceLayer='default'
               minZoom={18}
               layout={{
-                'text-field': "U: {unit}, B: {block}\nL: {lot}, P: {plot}",
+                'text-field': "Plot: {plot}",
 					      'text-font': [
                     "DIN Offc Pro Medium",
                     "Arial Unicode MS Bold"
                   ],
-                  'text-size': 6,
+                  'text-size': 10,
                   'symbol-placement': 'point',
                   'text-anchor': 'center'
               }}
@@ -666,7 +664,7 @@ class MapView extends Component {
                   "DIN Offc Pro Medium",
                   "Arial Unicode MS Bold"
                 ],
-                'text-size': 8,
+                'text-size': 10,
                 'symbol-placement': 'point',
                 'text-anchor': 'center'
               }}
