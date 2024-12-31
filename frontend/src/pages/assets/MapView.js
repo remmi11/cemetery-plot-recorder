@@ -288,7 +288,7 @@ class MapView extends Component {
 
       detailInfo: {},
       // mapLayer: 'mapbox://styles/wtgeographer/cky1pualh4lid14qit4qrhack',
-      mapLayer: 'mapbox://styles/mapbox/streets-v11',
+      mapLayer: 'mapbox://styles/wtgeographer/cm5cq7y7n002n01s9ch4u695o',
       showMapLayer: true,
 
       floods: false,

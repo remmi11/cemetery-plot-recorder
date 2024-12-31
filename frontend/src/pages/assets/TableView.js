@@ -244,13 +244,6 @@ class AssetATableView extends Component {
         sortable: true
       },
       {
-        name: "",
-        selector: 'geom',
-        compact: true,
-        width: '30px',
-        sortable: false
-      },
-      {
         name: "First Name",
         selector: 'first_name',
         compact: true,
@@ -438,7 +431,7 @@ class AssetATableView extends Component {
       last_name: <div className="filter"><input name="last_name" className="last_name" placeholder="Last Name" defaultValue={this.subFilter.last_name} onKeyUp={(e) => this.onSubFilter(e)} /></div>,
       middle_name: <div className="filter"><input name="middle_name" className="middle_name" placeholder="Middle Name" defaultValue={this.subFilter.middle_name} onKeyUp={(e) => this.onSubFilter(e)} /></div>,
       suffix: <div className="filter"><input name="suffix" className="suffix" placeholder="Suffix" defaultValue={this.subFilter.suffix} onKeyUp={(e) => this.onSubFilter(e)} /></div>,
-      maiden: <div className="filter"><input name="maiden_name" className="maiden_name" placeholder="Maiden Name" defaultValue={this.subFilter.maiden_name} onKeyUp={(e) => this.onSubFilter(e)} /></div>,
+      maiden_name: <div className="filter"><input name="maiden_name" className="maiden_name" placeholder="Maiden Name" defaultValue={this.subFilter.maiden_name} onKeyUp={(e) => this.onSubFilter(e)} /></div>,
       county: <div className="filter"><input name="county" className="county" placeholder="County" defaultValue={this.subFilter.county} onKeyUp={(e) => this.onSubFilter(e)} /></div>,
       addition: <div className="filter"><input name="addition" className="addition" placeholder="Addition" defaultValue={this.subFilter.addition} onKeyUp={(e) => this.onSubFilter(e)} /></div>,
       unit: <div className="filter"><input name="unit" className="unit" placeholder="Unit" defaultValue={this.subFilter.unit} onKeyUp={(e) => this.onSubFilter(e)} /></div>,
