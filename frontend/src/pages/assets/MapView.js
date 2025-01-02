@@ -288,7 +288,7 @@ class MapView extends Component {
 
       detailInfo: {},
       // mapLayer: 'mapbox://styles/wtgeographer/cky1pualh4lid14qit4qrhack',
-      mapLayer: 'mapbox://styles/mapbox/streets-v12',
+      mapLayer: 'mapbox://styles/wtgeographer/cm5cq7y7n002n01s9ch4u695o/draft',
       showMapLayer: true,
 
       floods: false,
@@ -607,46 +607,6 @@ class MapView extends Component {
             onDragEnd = {(map, evt) => this.onZoom(map, evt)}
           >
             <Source id='cemeterydata' tileJsonSource={this.state.option} />
-            <Layer
-              id='cemeterydata-polygon'
-              type='fill'
-              sourceId='cemeterydata'
-              sourceLayer='default'
-              paint={{
-                'fill-color': '#0080ff',
-                'fill-opacity': 0.5
-              }}  
-            />
-            <Layer
-              id='cemeterydata-outline'
-              type='line'
-              sourceId='cemeterydata'
-              sourceLayer='default'
-              paint={{
-                'line-color': '#0067c5',
-                'line-width': 3
-              }}
-            />
-            <Layer
-              id='cemeterydata-labels'
-              type='symbol'
-              sourceId='cemeterydata'
-              sourceLayer='default'
-              minZoom={18}
-              layout={{
-                'text-field': "Plot: {plot}",
-					      'text-font': [
-                    "DIN Offc Pro Medium",
-                    "Arial Unicode MS Bold"
-                  ],
-                  'text-size': 10,
-                  'symbol-placement': 'point',
-                  'text-anchor': 'center'
-              }}
-              paint={{
-                'text-color': '#000000'
-              }}
-            />
             <Layer
               id='cemeterydata-form-labels'
               type='symbol'
