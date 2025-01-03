@@ -187,7 +187,7 @@ const LayerPanel = styled.div`
 // Define the map object.
 const Map = ReactMapboxGl({
   accessToken:
-    'pk.eyJ1Ijoid3RnZW9ncmFwaGVyIiwiYSI6ImNrNXk3dXh6NzAwbncza3A1eHlpY2J2bmoifQ.JRy79QqtwUTYHK7dFUYy5g'
+    'pk.eyJ1Ijoid3RnZW9ncmFwaGVyIiwiYSI6ImNtMXozY2k0dDAyczIyaXB2Zmoydmo1NDcifQ.bHwYPidUOlcJP5QdxfWlbQ'
 });
 
 const StyledPopup = styled.div`
@@ -288,7 +288,7 @@ class MapView extends Component {
 
       detailInfo: {},
       // mapLayer: 'mapbox://styles/wtgeographer/cky1pualh4lid14qit4qrhack',
-      mapLayer: 'mapbox://styles/wtgeographer/cm5cq7y7n002n01s9ch4u695o/draft',
+      mapLayer: 'mapbox://styles/wtgeographer/cm5cq7y7n002n01s9ch4u695o',
       showMapLayer: true,
 
       floods: false,
