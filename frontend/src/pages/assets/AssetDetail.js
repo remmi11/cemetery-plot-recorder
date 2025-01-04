@@ -46,12 +46,6 @@ const Card = styled(MuiCard)(spacing);
 const CardContent = styled(MuiCardContent)(spacing);
 const Button = styled(MuiButton)(spacing);
 
-// Define mapbox object
-const MapPanel = ReactMapboxGl({
-  accessToken:
-    'pk.eyJ1Ijoid3RnZW9ncmFwaGVyIiwiYSI6ImNrNXk3dXh6NzAwbncza3A1eHlpY2J2bmoifQ.JRy79QqtwUTYHK7dFUYy5g'
-});
-
 const ASSET_COLORS = {
   'residential': '#27409a',
   'rural': '#c70f0f',

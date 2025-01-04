@@ -239,10 +239,6 @@ const FilterTitle = styled(Grid)`
   background: #292929;
   color: white;
 `;
-
-const mapAccess = {
-  mapboxApiAccessToken: 'pk.eyJ1Ijoid3RnZW9ncmFwaGVyIiwiYSI6ImNrNXk3dXh6NzAwbncza3A1eHlpY2J2bmoifQ.JRy79QqtwUTYHK7dFUYy5g'
-}
  
 const queryParams = {
   country: 'us'
@@ -591,11 +587,6 @@ class MapView extends Component {
           })}
         </Grid>        
         <Grid item md={12} mb={6} xs={12}>
-          {/* <Geocoder
-            {...mapAccess} onSelected={this.onSelected} viewport={viewport}
-            queryParams={queryParams}
-            inputComponent={SearchInput}
-          /> */}
           <Map key={timestamp}
             style={mapLayer}
             center={this.state.center}
