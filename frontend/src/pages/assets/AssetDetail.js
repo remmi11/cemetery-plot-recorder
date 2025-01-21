@@ -259,8 +259,8 @@ class AssetDetail extends Component {
     }
 
     this.drawControl = null;
-    this.center = [-101.8568, 35.1944];
-    this.zoom = [11];
+    // this.center = [-101.8568, 35.1944];
+    // this.zoom = [11];
     this.isSuperUser = storejs.get('user').is_superuser;
     this.updateLocation = null;
     

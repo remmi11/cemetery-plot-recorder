@@ -250,7 +250,7 @@ class Assets extends Component {
         assets = res.geojson;
       }
 
-      let temp = {assets: assets, total: res.total, page: page, bbox: res.bbox};
+      let temp = {assets: assets, total: res.total, page: page};
       if (sort) {
         temp.sort_column = sort.column;
         temp.sort_direction = sort.direction;
@@ -259,7 +259,6 @@ class Assets extends Component {
       self.props.set_asset(assets);
       self.setState(temp);
       self.assets = assets;
-
       
     })
 

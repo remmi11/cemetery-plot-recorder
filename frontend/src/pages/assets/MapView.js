@@ -187,7 +187,8 @@ const LayerPanel = styled.div`
 // Define the map object.
 const Map = ReactMapboxGl({
   accessToken:
-    'pk.eyJ1Ijoid3RnZW9ncmFwaGVyIiwiYSI6ImNtMXozY2k0dDAyczIyaXB2Zmoydmo1NDcifQ.bHwYPidUOlcJP5QdxfWlbQ'
+    // 'pk.eyJ1Ijoid3RnZW9ncmFwaGVyIiwiYSI6ImNrNXk3dXh6NzAwbncza3A1eHlpY2J2bmoifQ.JRy79QqtwUTYHK7dFUYy5g'//furman
+    'pk.eyJ1Ijoid3RnZW9ncmFwaGVyIiwiYSI6ImNtMXozY2k0dDAyczIyaXB2Zmoydmo1NDcifQ.bHwYPidUOlcJP5QdxfWlbQ'//cemetery
 });
 
 const StyledPopup = styled.div`
@@ -259,15 +260,22 @@ const SearchInput = (props) => <input {...props} placeholder="Search Address" va
 class MapView extends Component {
   constructor(props) {
     super(props);
-
     let user = storejs.get('user');
+    let bounds = storejs.get('bounds', null);
 
-    let bound = [
+    let maxBounds = [
       [-100.022393, 36.1248534], // Southwest coordinates
       [-100.011866, 36.1307898] // Northeast coordinates
     ];
 
-    storejs.set('bounds', bound);
+    if (!bounds) {  
+      bounds = maxBounds;
+      storejs.set('bounds', maxBounds);
+    }
+
+    //calculate center
+    let bboxCenter = [(bounds[0]+bounds[2])/2, (bounds[1]+bounds[3])/2];
+    //bboxCenter = [-100.0174217, 36.1279298]
 
     this.state = {
       filterDialog: false,
@@ -275,16 +283,17 @@ class MapView extends Component {
       selected: null,
       assets: [],
       geojson: null,
-      bbox: bound,
+      bbox: bounds,
       property: null,
       timestamp: 12,
-      bounds: bound,
+      maxBounds: maxBounds,
       filter: {},
       filterBubbles: {},
 
       detailInfo: {},
-      // mapLayer: 'mapbox://styles/wtgeographer/cky1pualh4lid14qit4qrhack',
-      mapLayer: 'mapbox://styles/wtgeographer/cm5cq7y7n002n01s9ch4u695o',
+      // mapLayer: 'mapbox://styles/mapbox/streets-v12',
+      // mapLayer: 'mapbox://styles/wtgeographer/cky1pualh4lid14qit4qrhack',//furman
+      mapLayer: 'mapbox://styles/wtgeographer/cm5cq7y7n002n01s9ch4u695o',//cemetery
       showMapLayer: true,
 
       floods: false,
@@ -305,7 +314,7 @@ class MapView extends Component {
       assetDetail: false,
       selectedAsset: null,
 
-      center: [-100.0174217, 36.1279298],
+      center: bboxCenter,
       isFirstLoad: true,
     }
 
@@ -341,7 +350,12 @@ class MapView extends Component {
       url += "global=" + globalFilter + "&";
     }
 
-    this.setState({filter, option: {...option, tiles: [this.tileUrl + url]}, center: this.state.center, filterIcon: isFilered, filterBubbles})
+    this.setState({
+      filter, 
+      option: {...option, tiles: [this.tileUrl + url]}, 
+      filterIcon: isFilered, 
+      filterBubbles
+    })
 
     storejs.set('assetPrePage', 'map');
     document.addEventListener('mousedown', this.handleClickOutside);
@@ -525,12 +539,9 @@ class MapView extends Component {
           lat = parseFloat(geom[1]);
           lng = parseFloat(geom[0]);
 
-          // this.setState({assetDetail: true, selectedAsset: res[0].id});
           showPlotDialog(res[0].id);
-
           // console.log("map click -> data loaded -> count =", res.length, " |", res)
           // console.log("lat, lng:", lat, lng, res);
-
         }
       } else {
         console.log("Error in plot details API...")
@@ -565,7 +576,7 @@ class MapView extends Component {
   }
 
   render() {
-    let {bbox, timestamp, bounds, mapLayer, filterIcon} = this.state;
+    let {bbox, timestamp, maxBounds, mapLayer, filterIcon, center} = this.state;
 
     return (
       <MapViewWrapper container mb={6}>
@@ -589,10 +600,10 @@ class MapView extends Component {
         <Grid item md={12} mb={6} xs={12}>
           <Map key={timestamp}
             style={mapLayer}
-            center={this.state.center}
+            center={center}
             maxZoom={24}
             fitBounds={bbox}
-            maxBounds={bounds}
+            maxBounds={maxBounds}
             onClick = {(map, evt) => this.onClickMap(map, evt)}
             onZoomEnd = {(map, evt) => this.onZoom(map, evt)}
             onDragEnd = {(map, evt) => this.onZoom(map, evt)}
