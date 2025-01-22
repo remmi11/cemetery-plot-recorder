@@ -274,8 +274,8 @@ class MapView extends Component {
     }
 
     //calculate center
-    let bboxCenter = [(bounds[0]+bounds[2])/2, (bounds[1]+bounds[3])/2];
-    //bboxCenter = [-100.0174217, 36.1279298]
+    // let bboxCenter = [(bounds[0]+bounds[2])/2, (bounds[1]+bounds[3])/2];
+    let bboxCenter = [-100.0174217, 36.1279298];
 
     this.state = {
       filterDialog: false,

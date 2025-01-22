@@ -163,6 +163,13 @@ class Assets extends Component {
     }
 
     this.assets = [];
+    
+    let maxBounds = [
+      [-100.022393, 36.1248534], // Southwest coordinates
+      [-100.011866, 36.1307898] // Northeast coordinates
+    ];
+    storejs.set('bounds', maxBounds);
+  
   }
 
   // The event function to open 'Create Asset' or 'Upl'

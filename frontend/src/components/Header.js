@@ -101,13 +101,13 @@ class Header extends Component {
   }
 
   redirect() {
-    storejs.set('bounds', [-108.17760745441063,33.234930914675445,-94.99167812063787,36.67397646539162])
-    window.location.href = '/assets';
+    // storejs.set('bounds', [-108.17760745441063,33.234930914675445,-94.99167812063787,36.67397646539162])
+    window.location.href = '/plots';
   };
 
   render() {
     let title = "";
-    if (window.location.href.includes('assets')) {
+    if (window.location.href.includes('plots')) {
       title = "Plots";
     } else if (window.location.href.includes('dashboard')) {
       title = "Dashboard";
